@@ -2,5 +2,6 @@
      "Addr": ":8080",
      "ReadTimeout": 20,
      "WriteTimeout": 20,
-     "ConnectionString": "user=user dbname=fileharbor sslmode=disable"
+     "ConnectionString": "user=user dbname=fileharbor sslmode=disable",
+     "DefaultQuota": 1000
 }

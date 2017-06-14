@@ -8,7 +8,11 @@ import (
 
 func configureRoutes(e *echo.Echo) error {
 
+	// home.go
 	e.GET("/", handlers.HomeIndex)
+
+	// users.go
+	e.GET("/users/register", handlers.UsersRegister)
 
 	return nil
 }

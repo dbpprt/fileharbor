@@ -1,6 +1,7 @@
 package web
 
 import (
+	"log"
 	"net/http"
 	"time"
 
@@ -20,7 +21,7 @@ func Initialize(configuration *common.Configuration, db *sqlx.DB) {
 	// register our custom context to avoid package global variables
 	e.Use(func(handlerFunc echo.HandlerFunc) echo.HandlerFunc {
 		return func(echoContext echo.Context) error {
-			ctx, err := context.New(&echoContext, db)
+			ctx, err := context.New(&echoContext, configuration, db)
 
 			if err != nil {
 				return err
@@ -40,6 +41,7 @@ func Initialize(configuration *common.Configuration, db *sqlx.DB) {
 	// TODO: read from config
 	// TODO: graceful shutdown
 
+	log.Println("starting http server", configuration.Addr)
 	e.Logger.Fatal(e.StartServer(&http.Server{
 		Addr:         configuration.Addr,
 		ReadTimeout:  time.Duration(configuration.ReadTimeout) * time.Minute,

@@ -10,6 +10,7 @@ type Configuration struct {
 	ConnectionString string
 	ReadTimeout      int
 	WriteTimeout     int
+	DefaultQuota     int
 }
 
 func (configuration *Configuration) Parse(path *string) error {
