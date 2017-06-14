@@ -6,11 +6,21 @@ import (
 )
 
 type Configuration struct {
-	Addr             string
-	ConnectionString string
-	ReadTimeout      int
-	WriteTimeout     int
-	DefaultQuota     int
+	Addr             string `json:"addr"`
+	ConnectionString string `json:"connection_string"`
+	ReadTimeout      int    `json:"read_timeout"`
+	WriteTimeout     int    `json:"write_timeout"`
+	DefaultQuota     int    `json:"default_quota"`
+
+	Storage struct {
+		AccessKey string `json:"access_key"`
+		SecretKey string `json:"secret_key"`
+		Region    string `json:"region"`
+		Endpoint  string `json:"endpoint"`
+		UseSSL    bool   `json:"use_ssl"`
+	} `json:"storage"`
+
+	TemplateFolder string `json:"template_folder"`
 }
 
 func (configuration *Configuration) Parse(path *string) error {

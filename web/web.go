@@ -11,17 +11,17 @@ import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/dennisbappert/fileharbor/services"
 )
 
-func Initialize(configuration *common.Configuration, db *sqlx.DB) {
+func Initialize(configuration *common.Configuration, services *services.Services) {
 	e := echo.New()
 	e.HideBanner = true
 
 	// register our custom context to avoid package global variables
 	e.Use(func(handlerFunc echo.HandlerFunc) echo.HandlerFunc {
 		return func(echoContext echo.Context) error {
-			ctx, err := context.New(&echoContext, configuration, db)
+			ctx, err := context.New(&echoContext, configuration, services)
 
 			if err != nil {
 				return err

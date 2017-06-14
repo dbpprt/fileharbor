@@ -13,17 +13,17 @@ import (
 )
 
 type UserService struct {
-	database      *sqlx.DB
-	configuration *common.Configuration
-	Services      *Services
+	Service
 }
+
+// TODO: validate email address
 
 func normalizeEmail(email string) string {
 	return strings.ToLower(email)
 }
 
 func NewUserService(configuration *common.Configuration, database *sqlx.DB, services *Services) *UserService {
-	service := &UserService{database: database, configuration: configuration, Services: services}
+	service := &UserService{Service{database: database, configuration: configuration, Services: services}}
 	return service
 }
 
@@ -66,17 +66,17 @@ func (service *UserService) Register(email string, surname string, givenname str
 	log.Println("beginning insert", id, email)
 
 	tx := service.database.MustBegin()
-	tx.MustExec("INSERT INTO users (id, email, givenname, surname) VALUES($1, $2, $3, $4)", id, email, surname, givenname)
-	err := tx.Commit()
+	_, err := tx.Exec("INSERT INTO users (id, email, givenname, surname) VALUES($1, $2, $3, $4)", id, email, surname, givenname)
 
 	if err != nil {
-		log.Println("error while executing transaction", err)
+		log.Println("error while creating user", err)
+		tx.Rollback()
 		return "", err
 	}
 
 	log.Println("user successfully created", id)
 
-	collection, err := service.Services.CollectionService.Create()
+	collection, err := service.CollectionService.Create(tx)
 
 	if err != nil {
 		log.Println("unable to create collection, rolling back user creation")
@@ -84,7 +84,28 @@ func (service *UserService) Register(email string, surname string, givenname str
 		return "", err
 	}
 
-	service.Services.CollectionService.AssignUser(id, collection)
+	log.Println("assigning user to newly created collection")
+	err = service.CollectionService.AssignUser(id, collection, tx)
+
+	if err != nil {
+		log.Println("unable to assigning user to collection, rolling back user creation")
+		tx.Rollback()
+		return "", err
+	}
+
+	log.Println("committing user creation to database")
+	err = tx.Commit()
+	if err != nil {
+		log.Println("unable to commit transaction for user creation - deleting bucket", err)
+		tx.Rollback()
+
+		cleanupErr := service.StorageService.DeleteBucket(collection, false)
+		if cleanupErr != nil {
+			log.Println("unable to cleanup bucket, please delete manually", collection, cleanupErr)
+		}
+
+		return "", err
+	}
 
 	return id, nil
 }

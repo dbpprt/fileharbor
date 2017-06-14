@@ -3,6 +3,7 @@ package common
 const (
 	ErrNotFound            = "err-not-found"
 	ErrUserAlreadyExisting = "err-user-already-existing"
+	ErrUnexpected          = "err-unexpected"
 )
 
 type ApplicationError struct {

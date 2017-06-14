@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/dennisbappert/fileharbor/common"
@@ -18,7 +19,13 @@ func UsersRegister(c echo.Context) error {
 		Email     string `json:"email"`
 	}
 
-	id, err := ctx.Services.UserService.Register("admin@admin.io", "Bappert", "Dennis")
+	reg := new(registration)
+	if err := c.Bind(reg); err != nil {
+		log.Println("unable to bind request body to type restration")
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	id, err := ctx.UserService.Register(reg.Email, reg.SurName, reg.GivenName)
 
 	if err != nil {
 		if applicationError, ok := err.(*common.ApplicationError); ok {
@@ -26,8 +33,12 @@ func UsersRegister(c echo.Context) error {
 			return c.JSON(http.StatusOK, response)
 		}
 
-		panic(err)
+		log.Println("unexpected error occurred - sending 500", err)
+		response := helper.NewUnexpectedErrorResponse()
+		return c.JSON(http.StatusInternalServerError, response)
 	}
 
-	return c.String(http.StatusOK, id)
+	return c.JSON(http.StatusOK, struct {
+		Id string `json:"id"`
+	}{id})
 }

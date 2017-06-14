@@ -5,8 +5,10 @@ import (
 	"log"
 
 	"github.com/dennisbappert/fileharbor/common"
+	minio "github.com/minio/minio-go"
 
 	"github.com/dennisbappert/fileharbor/database"
+	"github.com/dennisbappert/fileharbor/services"
 	"github.com/dennisbappert/fileharbor/web"
 )
 
@@ -35,11 +37,21 @@ func main() {
 		log.Println("error while connecting to database")
 		panic(err)
 	}
-	log.Println("connection successful")
+	log.Println("connection to database established successfully")
+
+	log.Println("connecting to storage endpoint", configuration.Storage.Endpoint)
+	mc, err := minio.New(configuration.Storage.Endpoint, configuration.Storage.AccessKey, configuration.Storage.SecretKey, configuration.Storage.UseSSL)
+	if err != nil {
+		log.Println("unable to connect to storage")
+		panic(err)
+	}
+	log.Println("connection to storage established successfully")
+
+	services := services.Initialize(&configuration, db, mc)
 
 	if *webFlag {
 		log.Println("starting web interface")
-		web.Initialize(&configuration, db)
+		web.Initialize(&configuration, services)
 	}
 
 	defer db.Close()

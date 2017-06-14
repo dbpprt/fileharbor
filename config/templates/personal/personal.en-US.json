@@ -1,0 +1,12 @@
+{
+    "title": "Personal collection",
+    "description": "This template should ... TBD",
+
+    "include_columns": [
+        "../base.columns.en-US.json"
+    ],
+
+    "include_contenttypes": [
+        "../base.contenttypes.en-US.json"
+    ]
+}
