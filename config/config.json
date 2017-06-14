@@ -1,4 +1,6 @@
 {
-     "Port": 8080,
-     "ConnectionString": "TBD"
+     "Addr": ":8080",
+     "ReadTimeout": 20,
+     "WriteTimeout": 20,
+     "ConnectionString": "user=user dbname=fileharbor sslmode=disable"
 }

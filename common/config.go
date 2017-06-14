@@ -6,8 +6,10 @@ import (
 )
 
 type Configuration struct {
-	Port             int
+	Addr             string
 	ConnectionString string
+	ReadTimeout      int
+	WriteTimeout     int
 }
 
 func (configuration *Configuration) Parse(path *string) error {
