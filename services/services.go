@@ -11,6 +11,7 @@ type Services struct {
 	CollectionService         *CollectionService
 	StorageService            *StorageService
 	CollectionTemplateService *CollectionTemplateService
+	ColumnService             *ColumnService
 }
 
 type Service struct {
@@ -26,5 +27,6 @@ func Initialize(configuration *common.Configuration, database *sqlx.DB, mc *mini
 	services.CollectionService = NewCollectionService(configuration, database, services)
 	services.StorageService = NewStorageService(configuration, database, mc, services)
 	services.CollectionTemplateService = NewCollectionTemplateService(configuration, database, services)
+	services.ColumnService = NewColumnService(configuration, database, services)
 	return services
 }

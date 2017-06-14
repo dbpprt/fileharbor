@@ -4,6 +4,8 @@ const (
 	ErrNotFound            = "err-not-found"
 	ErrUserAlreadyExisting = "err-user-already-existing"
 	ErrUnexpected          = "err-unexpected"
+	ErrPasswordTooShort    = "err-password-too-short"
+	ErrLoginFailed         = "err-login-failed"
 )
 
 type ApplicationError struct {

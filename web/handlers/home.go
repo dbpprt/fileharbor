@@ -9,7 +9,7 @@ import (
 
 func HomeIndex(c echo.Context) error {
 	ctx := c.(*context.Context)
-	ctx.CollectionTemplateService.GetAvaliableTemplates("en-US")
+	ctx.CollectionTemplateService.GetAvaliableTemplates()
 
 	return c.String(http.StatusOK, "Hello, World!\n")
 }

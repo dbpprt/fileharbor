@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.0-beta1" author="Dennis Bappert" last-position="175,185" last-zoom="1"
+<dbmodel pgmodeler-ver="0.9.0-beta1" author="Dennis Bappert" last-position="174,0" last-zoom="1"
 	 default-schema="public" default-owner="postgres">
 <database name="fileharbor">
 </database>
@@ -14,7 +14,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="users">
 	<schema name="public"/>
 	<role name="postgres"/>
-	<position x="300" y="160"/>
+	<position x="300" y="100"/>
 	<column name="id" not-null="true">
 		<type name="uuid" length="0"/>
 	</column>
@@ -26,6 +26,15 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	</column>
 	<column name="givenname" not-null="true">
 		<type name="text" length="0"/>
+	</column>
+	<column name="superadmin" not-null="true" default-value="false">
+		<type name="bool" length="0"/>
+	</column>
+	<column name="password_salt" not-null="true">
+		<type name="bytea" length="0"/>
+	</column>
+	<column name="password_hash" not-null="true">
+		<type name="bytea" length="0"/>
 	</column>
 	<constraint name="users_pk" type="pk-constr" table="public.users">
 		<columns names="id" ref-type="src-columns"/>
@@ -47,6 +56,9 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	</column>
 	<column name="bytes_used" not-null="true" default-value="0">
 		<type name="bigint" length="0"/>
+	</column>
+	<column name="template_definition">
+		<type name="jsonb" length="0"/>
 	</column>
 	<constraint name="collections_pk" type="pk-constr" table="public.collections">
 		<columns names="id" ref-type="src-columns"/>
@@ -87,6 +99,9 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<column name="description">
 		<type name="text" length="0"/>
 	</column>
+	<column name="group" not-null="true">
+		<type name="text" length="0"/>
+	</column>
 	<column name="type" not-null="true">
 		<type name="text" length="0"/>
 	</column>
@@ -94,7 +109,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 		<type name="bool" length="0"/>
 	</column>
 	<column name="settings" not-null="true">
-		<type name="json" length="0"/>
+		<type name="jsonb" length="0"/>
 	</column>
 	<constraint name="columns_pk" type="pk-constr" table="public.columns">
 		<columns names="id" ref-type="src-columns"/>

@@ -10,24 +10,17 @@ import (
 	"github.com/labstack/echo"
 )
 
-// TODO: password
-// TODO: validate mail
-func UsersRegister(c echo.Context) error {
+func CollectionsGetTemplates(c echo.Context) error {
 	ctx := c.(*context.Context)
 
-	type registration struct {
-		GivenName string `json:"givenname"`
-		Email     string `json:"email"`
-		Password  string `json:"password"`
+	type template struct {
+		ID          string `json:"id"`
+		Name        string `json:"name"`
+		Description string `json:"description"`
+		Language    string `json:"language"`
 	}
 
-	reg := new(registration)
-	if err := c.Bind(reg); err != nil {
-		log.Println("unable to bind request body to type restration")
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	id, err := ctx.UserService.Register(reg.Email, reg.GivenName, reg.Password)
+	templates, err := ctx.CollectionTemplateService.GetAvaliableTemplates()
 
 	if err != nil {
 		if applicationError, ok := err.(*common.ApplicationError); ok {
@@ -40,7 +33,15 @@ func UsersRegister(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, response)
 	}
 
-	return c.JSON(http.StatusOK, struct {
-		Id string `json:"id"`
-	}{id})
+	var results []template
+	for _, current := range *templates {
+		results = append(results, template{
+			ID:          current.ID,
+			Name:        current.Name,
+			Description: current.Description,
+			Language:    current.Language,
+		})
+	}
+
+	return c.JSON(http.StatusOK, results)
 }

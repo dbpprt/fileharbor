@@ -1,9 +1,11 @@
 package services
 
 import (
+	"database/sql"
 	"log"
 
 	"github.com/dennisbappert/fileharbor/common"
+	"github.com/dennisbappert/fileharbor/models"
 	"github.com/jmoiron/sqlx"
 	uuid "github.com/satori/go.uuid"
 )
@@ -15,6 +17,23 @@ type CollectionService struct {
 func NewCollectionService(configuration *common.Configuration, database *sqlx.DB, services *Services) *CollectionService {
 	service := &CollectionService{Service{database: database, configuration: configuration, Services: services}}
 	return service
+}
+
+func (service *CollectionService) Exists(id string) (bool, error) {
+	collection := models.CollectionEntity{}
+	log.Println("looking up collection", id)
+	err := service.database.Get(&collection, "SELECT * FROM collections where id=$1", id)
+
+	// TODO: thhis looks like bullshit, there should be a better way
+	if err != nil && err == sql.ErrNoRows {
+		log.Println("collection is not existing")
+		return false, nil
+	} else if err != nil {
+		return true, err
+	}
+
+	log.Println("collection is existing", collection)
+	return true, nil
 }
 
 func (service *CollectionService) Create(tx *sqlx.Tx) (string, error) {

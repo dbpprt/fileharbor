@@ -23,6 +23,9 @@ var (
 )
 
 func main() {
+	// TODO: configure logging from config
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
 	log.Println("parsing config file", *configurationFile)
 	configuration := common.Configuration{}
 	if err := configuration.Parse(configurationFile); err != nil {

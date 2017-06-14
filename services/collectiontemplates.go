@@ -18,26 +18,12 @@ type CollectionTemplateService struct {
 	Service
 }
 
-type templateDefinition struct {
-	Name                string   `json:"name"`
-	Description         string   `json:"description"`
-	IncludeColumns      []string `json:"include_columns"`
-	IncludeContentTypes []string `json:"include_contenttypes"`
-}
-
-type columnDefinition struct {
-	ID          string          `json:"id"`
-	Name        string          `json:"name"`
-	Description string          `json:"description"`
-	Type        string          `json:"type"`
-	Sealed      bool            `json:"sealed"`
-	Settings    json.RawMessage `json:"settings"`
-}
-
 type CollectionTemplate struct {
+	ID          string
 	Name        string
 	Description string
 	Language    string
+	Columns     []Column
 }
 
 func NewCollectionTemplateService(configuration *common.Configuration, database *sqlx.DB, services *Services) *CollectionTemplateService {
@@ -45,11 +31,28 @@ func NewCollectionTemplateService(configuration *common.Configuration, database 
 	return service
 }
 
-func (service *CollectionTemplateService) GetAvaliableTemplates(language string) error {
+func (service *CollectionTemplateService) GetAvaliableTemplates() (*[]CollectionTemplate, error) {
 	log.Println("searching all avaliable templates in template folder", service.configuration.TemplateFolder)
 
-	// we only want to work with lower-case names
-	language = strings.ToLower(language)
+	// this strcuts are only required for parsing the template files, is inline them valid?
+	type templateDefinition struct {
+		ID                  string   `json:"id"`
+		Name                string   `json:"name"`
+		Description         string   `json:"description"`
+		Language            string   `json:"-"` // TODO: implement this from file name of template
+		IncludeColumns      []string `json:"include_columns"`
+		IncludeContentTypes []string `json:"include_contenttypes"`
+	}
+
+	type columnDefinition struct {
+		ID          string          `json:"id"`
+		Name        string          `json:"name"`
+		Description string          `json:"description"`
+		Group       string          `json:"group"`
+		Type        string          `json:"type"`
+		Sealed      bool            `json:"sealed"`
+		Settings    json.RawMessage `json:"settings"`
+	}
 
 	// the result set
 	var results []CollectionTemplate
@@ -59,7 +62,7 @@ func (service *CollectionTemplateService) GetAvaliableTemplates(language string)
 
 	if err != nil {
 		log.Println("unable to enumerate template folder", err)
-		return err
+		return nil, err
 	}
 
 	for _, entry := range entries {
@@ -88,55 +91,72 @@ func (service *CollectionTemplateService) GetAvaliableTemplates(language string)
 
 				log.Println("file has the following language", fileLanguage)
 
-				if language == fileLanguage {
-					// we found a matching template
-					log.Println("found a matching template for given language", filePath)
+				// try opening and parsing the json file
+				file, err := os.Open(filePath) // TODO: is open only opeing with flag read? otherwise it may files while concurrently beeing accessed
 
-					// try opening and parsing the json file
-					file, err := os.Open(filePath)
+				if err != nil {
+					log.Println("unable to open file - skipping...", err)
+					continue
+				}
 
+				templateDefinition := &templateDefinition{}
+				decoder := json.NewDecoder(file)
+				err = decoder.Decode(&templateDefinition)
+
+				if err != nil {
+					log.Println("unable to parse file - invalid template - skipping...", err)
+					continue
+				}
+
+				log.Println("loaded template", templateDefinition)
+				result := &CollectionTemplate{
+					ID:          templateDefinition.ID,
+					Name:        templateDefinition.Name,
+					Description: templateDefinition.Description,
+					Language:    fileLanguage,
+				}
+
+				hasErrors := false
+
+				// parsing site columns
+				for _, include := range templateDefinition.IncludeColumns {
+					log.Println("processing include", include)
+					includePath := path.Join(folder, include)
+					log.Println("included file is", includePath)
+
+					file, err := os.Open(includePath)
 					if err != nil {
-						log.Println("unable to open file - skipping...", err)
-						continue
+						log.Println("unable to open file", includePath)
+						hasErrors = true
+						break
 					}
 
-					templateDefinition := &templateDefinition{}
-					decoder := json.NewDecoder(file)
-					err = decoder.Decode(&templateDefinition)
+					columnDefinitions := make([]columnDefinition, 0)
+					decoder = json.NewDecoder(file)
+					err = decoder.Decode(&columnDefinitions)
 
 					if err != nil {
 						log.Println("unable to parse file - invalid template - skipping...", err)
-						continue
+						hasErrors = true
+						break
 					}
 
-					log.Println("loaded template", templateDefinition)
+					log.Println("successfully parsed columns include", columnDefinitions)
 
-					hasErrors := false
+					for _, columnDefinition := range columnDefinitions {
+						log.Println("processing column", columnDefinition)
 
-					// parsing site columns
-					for _, include := range templateDefinition.IncludeColumns {
-						log.Println("processing include", include)
-						includePath := path.Join(folder, include)
-						log.Println("included file is", includePath)
-
-						file, err := os.Open(includePath)
-						if err != nil {
-							log.Println("unable to open file", includePath)
-							hasErrors = true
-							break
+						column := &Column{
+							ID:          columnDefinition.ID,
+							Name:        columnDefinition.Name,
+							Description: columnDefinition.Description,
+							Group:       columnDefinition.Group,
+							Type:        columnDefinition.Type,
+							Sealed:      columnDefinition.Sealed,
+							Settings:    columnDefinition.Settings, // TODO: better use a string?
 						}
 
-						columns := make([]columnDefinition, 0)
-						decoder = json.NewDecoder(file)
-						err = decoder.Decode(&columns)
-
-						if err != nil {
-							log.Println("unable to parse file - invalid template - skipping...", err)
-							hasErrors = true
-							break
-						}
-
-						log.Println("successfully parsed columns include", columns)
+						result.Columns = append(result.Columns, *column)
 					}
 
 					if hasErrors {
@@ -144,7 +164,7 @@ func (service *CollectionTemplateService) GetAvaliableTemplates(language string)
 						continue
 					}
 
-					//results = append(results, *result)
+					results = append(results, *result)
 				}
 			}
 
@@ -154,5 +174,5 @@ func (service *CollectionTemplateService) GetAvaliableTemplates(language string)
 
 	log.Println(results)
 
-	return nil
+	return &results, nil
 }
