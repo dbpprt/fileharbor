@@ -18,15 +18,15 @@ func Initialize(configuration *common.Configuration, db *sqlx.DB) {
 	e.HideBanner = true
 
 	// register our custom context to avoid package global variables
-	e.Use(func(h echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			ctx, err := context.New(&c, db)
+	e.Use(func(handlerFunc echo.HandlerFunc) echo.HandlerFunc {
+		return func(echoContext echo.Context) error {
+			ctx, err := context.New(&echoContext, db)
 
 			if err != nil {
 				return err
 			}
 
-			return h(ctx)
+			return handlerFunc(ctx)
 
 			// TODO: add a logger instance which includes a unique request id
 		}

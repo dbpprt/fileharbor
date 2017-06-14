@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+CAUTION: Do not modify this file unless you know what you are doing.
+         Unexpected results may occur if the code is changed deliberately.
+-->
+<dbmodel pgmodeler-ver="0.9.0-beta1" author="Dennis Bappert" last-position="0,372" last-zoom="1"
+	 default-schema="public" default-owner="postgres">
+<database name="fileharbor">
+</database>
+
+<schema name="public" fill-color="#e1e1e1" sql-disabled="true">
+</schema>
+
+<table name="users">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="300" y="160"/>
+	<column name="id" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="email" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<column name="surname">
+		<type name="text" length="0"/>
+	</column>
+	<column name="givenname">
+		<type name="text" length="0"/>
+	</column>
+	<constraint name="users_pk" type="pk-constr" table="public.users">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="collections">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="320" y="340"/>
+	<column name="id" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="is_default" default-value="true">
+		<type name="bool" length="0"/>
+	</column>
+	<column name="quota" not-null="true" default-value="1000">
+		<type name="integer" length="0"/>
+	</column>
+	<constraint name="collections_pk" type="pk-constr" table="public.collections">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="user_collection_mappings">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="800" y="260"/>
+	<column name="user_id" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="collection_id" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<constraint name="user_collection_mappings_pk" type="pk-constr" table="public.user_collection_mappings">
+		<columns names="user_id,collection_id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="columns">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="800" y="460"/>
+	<column name="id" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="collection_id" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="name" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<column name="description">
+		<type name="text" length="0"/>
+	</column>
+	<column name="type" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<constraint name="columns_pk" type="pk-constr" table="public.columns">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="contenttypes">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="800" y="660"/>
+	<column name="id" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="collection_id" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="parent_id">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="name" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<column name="description">
+		<type name="text" length="0"/>
+	</column>
+	<constraint name="contenttypes_pk" type="pk-constr" table="public.contenttypes">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="contenttype_column_mappings">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="1120" y="520"/>
+	<column name="contenttype_id" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="column_id" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="required" not-null="true" default-value="false">
+		<type name="bool" length="0"/>
+	</column>
+	<column name="visible" default-value="true">
+		<type name="bool" length="0"/>
+	</column>
+	<column name="default">
+		<type name="text" length="0"/>
+	</column>
+	<constraint name="contenttype_column_mappings_pk" type="pk-constr" table="public.contenttype_column_mappings">
+		<columns names="contenttype_id,column_id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<constraint name="users_fk" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.users" table="public.user_collection_mappings">
+	<columns names="user_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="collections_fk" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.collections" table="public.user_collection_mappings">
+	<columns names="collection_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="collections_fk" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.collections" table="public.columns">
+	<columns names="collection_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="collections_fk" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.collections" table="public.contenttypes">
+	<columns names="collection_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="parent_fk" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.contenttypes" table="public.contenttypes">
+	<columns names="parent_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="columns_fk" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.columns" table="public.contenttype_column_mappings">
+	<columns names="column_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="contenttypes_fk" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.contenttypes" table="public.contenttype_column_mappings">
+	<columns names="contenttype_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<relationship name="rel_user_collection_mappings_users" type="relfk"
+	 src-table="public.user_collection_mappings"
+	 dst-table="public.users"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_user_collection_mappings_collections" type="relfk"
+	 src-table="public.user_collection_mappings"
+	 dst-table="public.collections"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_columns_collections" type="relfk"
+	 src-table="public.columns"
+	 dst-table="public.collections"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_contenttypes_collections" type="relfk"
+	 src-table="public.contenttypes"
+	 dst-table="public.collections"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_contenttype_column_mappings_columns" type="relfk"
+	 src-table="public.contenttype_column_mappings"
+	 dst-table="public.columns"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_contenttype_column_mappings_contenttypes" type="relfk"
+	 src-table="public.contenttype_column_mappings"
+	 dst-table="public.contenttypes"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_contenttypes_contenttypes" type="relfk"
+	 src-table="public.contenttypes"
+	 dst-table="public.contenttypes"
+	 src-required="false" dst-required="false">
+	<line>
+		<position x="1047.52" y="723.998"/>
+	<position x="1047.52" y="651"/>
+	<position x="959.01" y="651"/>
+	</line>
+</relationship>
+
+</dbmodel>
