@@ -1,8 +1,47 @@
 package main
 
-import "fmt"
+import (
+	"flag"
+	"log"
+
+	"github.com/dennisbappert/fileharbor/common"
+
+	"github.com/dennisbappert/fileharbor/web"
+)
+
+// TODO: implement ldflag versioning
+
+var (
+	webFlag           = flag.Bool("web", true, "run fileharbor-web")
+	telegramFlag      = flag.Bool("telegram", false, "run telegram bot")
+	imapSyncFlag      = flag.Bool("imapsync", false, "run imap-sync")
+	debugFlag         = flag.Bool("debug", false, "run in debug mode")
+	configurationFile = flag.String("config", "./config/config.json", "path to config file")
+)
 
 func main() {
-	fmt.Println("hello world")
-	fmt.Println("really works?!?!")
+	log.Println("parsing config file", *configurationFile)
+
+	configuration := common.Configuration{}
+	if err := configuration.Parse(configurationFile); err != nil {
+		panic(err)
+	}
+	// file, err := os.Open(*configurationFile)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// decoder := json.NewDecoder(file)
+	// err = decoder.Decode(&configuration)
+
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	log.Println("parsed configuration", configuration)
+
+	if *webFlag {
+		log.Println("starting web interface")
+		web.Initialize(&configuration)
+	}
+
 }
