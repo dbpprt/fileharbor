@@ -19,14 +19,23 @@ type CollectionTemplateService struct {
 }
 
 type templateDefinition struct {
-	Title               string   `json:"title"`
+	Name                string   `json:"name"`
 	Description         string   `json:"description"`
 	IncludeColumns      []string `json:"include_columns"`
 	IncludeContentTypes []string `json:"include_contenttypes"`
 }
 
+type columnDefinition struct {
+	ID          string          `json:"id"`
+	Name        string          `json:"name"`
+	Description string          `json:"description"`
+	Type        string          `json:"type"`
+	Sealed      bool            `json:"sealed"`
+	Settings    json.RawMessage `json:"settings"`
+}
+
 type CollectionTemplate struct {
-	Title       string
+	Name        string
 	Description string
 	Language    string
 }
@@ -102,11 +111,37 @@ func (service *CollectionTemplateService) GetAvaliableTemplates(language string)
 
 					log.Println("loaded template", templateDefinition)
 
+					hasErrors := false
+
 					// parsing site columns
 					for _, include := range templateDefinition.IncludeColumns {
 						log.Println("processing include", include)
 						includePath := path.Join(folder, include)
 						log.Println("included file is", includePath)
+
+						file, err := os.Open(includePath)
+						if err != nil {
+							log.Println("unable to open file", includePath)
+							hasErrors = true
+							break
+						}
+
+						columns := make([]columnDefinition, 0)
+						decoder = json.NewDecoder(file)
+						err = decoder.Decode(&columns)
+
+						if err != nil {
+							log.Println("unable to parse file - invalid template - skipping...", err)
+							hasErrors = true
+							break
+						}
+
+						log.Println("successfully parsed columns include", columns)
+					}
+
+					if hasErrors {
+						log.Println("there were any errors while parsing the includes - skipping...")
+						continue
 					}
 
 					//results = append(results, *result)

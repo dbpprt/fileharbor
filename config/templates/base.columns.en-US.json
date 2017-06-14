@@ -1,0 +1,20 @@
+[{
+    "id": "1fd6f427-2ffb-4ec3-be0a-0166dbaedf9c",
+    "name": "Title",
+    "description": "",
+    "type": "text",
+    "settings": {
+        "max-length": 255
+    },
+    "sealed": true
+},
+{
+    "id": "715ba458-1a9e-4161-a271-d1cb2e5823f5",
+    "name": "Created at",
+    "description": "",
+    "type": "datetime",
+    "settings": {
+        "read-only": true
+    },
+    "sealed": true
+}]
