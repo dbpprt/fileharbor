@@ -64,7 +64,24 @@ func Initialize(configuration *common.Configuration, services *services.Services
 		Level: -1,
 	}))
 
-	configureRoutes(e, configuration)
+	// authentication middleware
+	authMiddleware := middleware.JWT([]byte(configuration.Token.Secret))
+
+	// build our different groups
+	anonymous := e.Group("")
+	authenticated := e.Group("", authMiddleware)
+	superadmin := e.Group("", authMiddleware) // TODO: not implemented yet :(
+
+	// TODO: inject current user in our context (custom context)
+	authenticated.Use(func(handlerFunc echo.HandlerFunc) echo.HandlerFunc {
+		return func(echoContext echo.Context) error {
+			log.Println(echoContext.Get("user"))
+			log.Println("custom handler")
+			return handlerFunc(echoContext)
+		}
+	})
+
+	configureRoutes(e, anonymous, authenticated, superadmin, configuration)
 
 	// TODO: graceful shutdown
 

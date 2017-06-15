@@ -5,16 +5,9 @@ import (
 
 	"github.com/dennisbappert/fileharbor/common"
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
 )
 
-func configureRoutes(e *echo.Echo, configuration *common.Configuration) error {
-	// our default auth middleware borrowed from echo ;)
-	authMiddleware := middleware.JWT([]byte(configuration.Token.Secret))
-
-	anonymous := e.Group("")
-	authenticated := e.Group("", authMiddleware)
-	//superadmin := e.Group("") // not implemented yet :(
+func configureRoutes(e *echo.Echo, anonymous *echo.Group, authenticated *echo.Group, superadmin *echo.Group, configuration *common.Configuration) error {
 
 	// static files
 	anonymous.File("/", "public/index.html")
