@@ -60,7 +60,6 @@ func UsersLogin(c echo.Context) error {
 	})
 }
 
-// TODO: password
 // TODO: validate mail
 func UsersRegister(c echo.Context) error {
 	ctx := c.(*context.Context)

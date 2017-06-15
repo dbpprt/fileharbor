@@ -2,7 +2,6 @@ package services
 
 import (
 	"database/sql"
-	"log"
 
 	"github.com/dennisbappert/fileharbor/common"
 	"github.com/dennisbappert/fileharbor/models"
@@ -21,25 +20,25 @@ func NewCollectionService(configuration *common.Configuration, database *sqlx.DB
 
 func (service *CollectionService) Exists(id string) (bool, error) {
 	collection := models.CollectionEntity{}
-	log.Println("looking up collection", id)
+	service.log.Println("looking up collection", id)
 	err := service.database.Get(&collection, "SELECT * FROM collections where id=$1", id)
 
 	// TODO: thhis looks like bullshit, there should be a better way
 	if err != nil && err == sql.ErrNoRows {
-		log.Println("collection is not existing")
+		service.log.Println("collection is not existing")
 		return false, nil
 	} else if err != nil {
 		return true, err
 	}
 
-	log.Println("collection is existing", collection)
+	service.log.Println("collection is existing", collection)
 	return true, nil
 }
 
 func (service *CollectionService) Create(tx *sqlx.Tx) (string, error) {
 	id := uuid.NewV4().String()
 
-	log.Println("creating new collection", id)
+	service.log.Println("creating new collection", id)
 	commit := false
 	if tx == nil {
 		tx = service.database.MustBegin()
@@ -48,7 +47,7 @@ func (service *CollectionService) Create(tx *sqlx.Tx) (string, error) {
 	_, err := tx.Exec("INSERT INTO collections (id, quota) VALUES($1, $2)", id, service.configuration.DefaultQuota)
 
 	if err != nil {
-		log.Println("unable to create collection", err)
+		service.log.Println("unable to create collection", err)
 
 		if commit == true {
 			tx.Rollback()
@@ -57,11 +56,11 @@ func (service *CollectionService) Create(tx *sqlx.Tx) (string, error) {
 		return "", err
 	}
 
-	log.Println("creating a bucket for the new collection")
+	service.log.Println("creating a bucket for the new collection")
 	err = service.StorageService.CreateBucket(id)
 
 	if err != nil {
-		log.Println("unable to create bucket for user,")
+		service.log.Println("unable to create bucket for user,")
 
 		if commit == true {
 			tx.Rollback()
@@ -69,25 +68,25 @@ func (service *CollectionService) Create(tx *sqlx.Tx) (string, error) {
 
 		return "", err
 	}
-	log.Println("created a new bucket", id)
+	service.log.Println("created a new bucket", id)
 
 	if commit == true {
 		err := tx.Commit()
 
 		if err != nil {
-			log.Println("error while executing transaction", err)
+			service.log.Println("error while executing transaction", err)
 			return "", err
 		}
 	} else {
-		log.Println("transaction passed to function - skipping commit")
+		service.log.Println("transaction passed to function - skipping commit")
 	}
 
-	log.Println("successfully created collection", id, service.configuration.DefaultQuota)
+	service.log.Println("successfully created collection", id, service.configuration.DefaultQuota)
 	return id, nil
 }
 
 func (service *CollectionService) AssignUser(userId string, id string, tx *sqlx.Tx) error {
-	log.Println("assign user to collection", userId, id)
+	service.log.Println("assign user to collection", userId, id)
 
 	// TODO: should not always be true?
 	isDefault := true
@@ -101,7 +100,7 @@ func (service *CollectionService) AssignUser(userId string, id string, tx *sqlx.
 	_, err := tx.Exec("INSERT INTO user_collection_mappings (user_id, collection_id, is_default) VALUES ($1, $2, $3)", userId, id, isDefault)
 
 	if err != nil {
-		log.Println("unable to create collection", err)
+		service.log.Println("unable to create collection", err)
 
 		if commit == true {
 			tx.Rollback()
@@ -114,12 +113,17 @@ func (service *CollectionService) AssignUser(userId string, id string, tx *sqlx.
 		err := tx.Commit()
 
 		if err != nil {
-			log.Println("error while executing transaction", err)
+			service.log.Println("error while executing transaction", err)
 			return err
 		}
 	} else {
-		log.Println("transaction passed to function - skipping commit")
+		service.log.Println("transaction passed to function - skipping commit")
 	}
 
 	return nil
+}
+
+func (servce *CollectionService) MyCollections() ([]*models.CollectionEntity, error) {
+
+	return nil, nil
 }

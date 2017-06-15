@@ -3,7 +3,6 @@ package services
 import (
 	"database/sql"
 	"encoding/json"
-	"log"
 
 	"errors"
 
@@ -52,42 +51,42 @@ func (service *ColumnService) validateAndNormalizeDateTimeColumn(column *Column)
 
 func (service *ColumnService) Exists(id string, collectionId string) (bool, error) {
 	column := models.ColumnEntity{}
-	log.Println("looking up column", id)
+	service.log.Println("looking up column", id)
 	err := service.database.Get(&column, "SELECT * FROM columns where id=$1 and collection_id=$2", id, collectionId)
 
 	// TODO: thhis looks like bullshit, there should be a better way
 	if err != nil && err == sql.ErrNoRows {
-		log.Println("column is not existing")
+		service.log.Println("column is not existing")
 		return false, nil
 	} else if err != nil {
 		return true, err
 	}
 
-	log.Println("column is existing", column)
+	service.log.Println("column is existing", column)
 	return true, nil
 }
 
 func (service *ColumnService) Create(column *Column, collectionId string) (string, error) {
 	var err error
 
-	log.Println("creating column", column)
-	log.Println("in target collection", collectionId)
+	service.log.Println("creating column", column)
+	service.log.Println("in target collection", collectionId)
 
 	// check if the collection exists
 	if exists, err := service.CollectionService.Exists(collectionId); err != nil {
-		log.Println("unable to check if collection exists - aborting...", err)
+		service.log.Println("unable to check if collection exists - aborting...", err)
 		return "", err
 	} else if !exists {
-		log.Println("collection is not existing - aborting...", collectionId)
+		service.log.Println("collection is not existing - aborting...", collectionId)
 		return "", errors.New("collection is not found") // TODO: add application error for this
 	}
 
 	// check if the column may already exists
 	if exists, err := service.Exists(column.ID, collectionId); err != nil {
-		log.Println("unable to check if column exists - aborting...", err)
+		service.log.Println("unable to check if column exists - aborting...", err)
 		return "", err
 	} else if exists {
-		log.Println("column is existing - aborting...", column.ID)
+		service.log.Println("column is existing - aborting...", column.ID)
 		return "", errors.New("column is already existing") // TODO: add application error for this
 	}
 
@@ -103,8 +102,8 @@ func (service *ColumnService) Create(column *Column, collectionId string) (strin
 	}
 
 	if err != nil {
-		log.Println("unable to validate column", column)
-		log.Println("aborting creation")
+		service.log.Println("unable to validate column", column)
+		service.log.Println("aborting creation")
 		return "", err
 	}
 

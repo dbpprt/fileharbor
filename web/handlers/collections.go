@@ -43,7 +43,5 @@ func CollectionsGetTemplates(c echo.Context) error {
 		})
 	}
 
-	ctx.UserService.LogContext()
-
 	return c.JSON(http.StatusOK, results)
 }

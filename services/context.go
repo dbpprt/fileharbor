@@ -28,6 +28,7 @@ type ServiceContext struct {
 
 	Environment *ServiceEnvironment
 
+	AuthorizationService      *AuthorizationService
 	UserService               *UserService
 	CollectionService         *CollectionService
 	StorageService            *StorageService
@@ -61,6 +62,7 @@ func NewServiceContext(configuration *common.Configuration, environment *Service
 	ctx.StorageService = NewStorageService(configuration, database, storage, ctx)
 	ctx.CollectionTemplateService = NewCollectionTemplateService(configuration, database, ctx)
 	ctx.ColumnService = NewColumnService(configuration, database, ctx)
+	ctx.AuthorizationService = NewAuthorizationService(configuration, database, ctx)
 
 	if ctx.Environment != nil {
 		ctx.log = log.New(os.Stdout, "("+ctx.Environment.RequestId+") ("+environment.Email+") ", log.LstdFlags|log.Ldate|log.Ltime|log.Lshortfile)
@@ -71,7 +73,7 @@ func NewServiceContext(configuration *common.Configuration, environment *Service
 
 func NewAnonymousEnvironment(requestId string) *ServiceEnvironment {
 	return &ServiceEnvironment{
-		CurrentUserId: uuid.Nil.String(),
+		CurrentUserId: AnonymousUserID,
 		Email:         "anonymous",
 		CurrentUserIsSuperAdmin: false,
 		RequestId:               requestId,
@@ -80,16 +82,17 @@ func NewAnonymousEnvironment(requestId string) *ServiceEnvironment {
 
 func NewUserEnvironment(requestId string, userId string, email string, superAdmin bool) *ServiceEnvironment {
 	return &ServiceEnvironment{
-		CurrentUserId: uuid.Nil.String(),
-		Email:         "anonymous",
-		CurrentUserIsSuperAdmin: false,
+		CurrentUserId: userId,
+		Email:         email,
+		CurrentUserIsSuperAdmin: superAdmin,
 		RequestId:               requestId,
 	}
 }
 
 func NewSystemEnvironment() *ServiceEnvironment {
 	return &ServiceEnvironment{
-		CurrentUserId:           uuid.Nil.String(),
+		CurrentUserId: SystemUserID,
+		Email:         "system",
 		CurrentUserIsSuperAdmin: true,
 		RequestId:               uuid.Nil.String(),
 	}

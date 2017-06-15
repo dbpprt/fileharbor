@@ -3,7 +3,6 @@ package services
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"os"
 
 	"path"
@@ -32,7 +31,7 @@ func NewCollectionTemplateService(configuration *common.Configuration, database 
 }
 
 func (service *CollectionTemplateService) GetAvaliableTemplates() (*[]CollectionTemplate, error) {
-	log.Println("searching all avaliable templates in template folder", service.configuration.TemplateFolder)
+	service.log.Println("searching all avaliable templates in template folder", service.configuration.TemplateFolder)
 
 	// this strcuts are only required for parsing the template files, is inline them valid?
 	type templateDefinition struct {
@@ -61,7 +60,7 @@ func (service *CollectionTemplateService) GetAvaliableTemplates() (*[]Collection
 	entries, err := ioutil.ReadDir(templatePath)
 
 	if err != nil {
-		log.Println("unable to enumerate template folder", err)
+		service.log.Println("unable to enumerate template folder", err)
 		return nil, err
 	}
 
@@ -74,7 +73,7 @@ func (service *CollectionTemplateService) GetAvaliableTemplates() (*[]Collection
 		files, err := ioutil.ReadDir(folder)
 
 		if err != nil {
-			log.Println("unable to process folder, skipping..", folder)
+			service.log.Println("unable to process folder, skipping..", folder)
 			continue
 		}
 
@@ -85,17 +84,17 @@ func (service *CollectionTemplateService) GetAvaliableTemplates() (*[]Collection
 			fileName := strings.ToLower(entry.Name())
 
 			if strings.HasPrefix(fileName, "template.") {
-				log.Println("found template definition file", filePath)
+				service.log.Println("found template definition file", filePath)
 				fileLanguage := strings.Replace(fileName, "template.", "", 1)
 				fileLanguage = strings.Replace(fileLanguage, ".json", "", 1)
 
-				log.Println("file has the following language", fileLanguage)
+				service.log.Println("file has the following language", fileLanguage)
 
 				// try opening and parsing the json file
 				file, err := os.Open(filePath) // TODO: is open only opeing with flag read? otherwise it may files while concurrently beeing accessed
 
 				if err != nil {
-					log.Println("unable to open file - skipping...", err)
+					service.log.Println("unable to open file - skipping...", err)
 					continue
 				}
 
@@ -104,11 +103,11 @@ func (service *CollectionTemplateService) GetAvaliableTemplates() (*[]Collection
 				err = decoder.Decode(&templateDefinition)
 
 				if err != nil {
-					log.Println("unable to parse file - invalid template - skipping...", err)
+					service.log.Println("unable to parse file - invalid template - skipping...", err)
 					continue
 				}
 
-				log.Println("loaded template", templateDefinition)
+				service.log.Println("loaded template", templateDefinition)
 				result := &CollectionTemplate{
 					ID:          templateDefinition.ID,
 					Name:        templateDefinition.Name,
@@ -120,13 +119,13 @@ func (service *CollectionTemplateService) GetAvaliableTemplates() (*[]Collection
 
 				// parsing site columns
 				for _, include := range templateDefinition.IncludeColumns {
-					log.Println("processing include", include)
+					service.log.Println("processing include", include)
 					includePath := path.Join(folder, include)
-					log.Println("included file is", includePath)
+					service.log.Println("included file is", includePath)
 
 					file, err := os.Open(includePath)
 					if err != nil {
-						log.Println("unable to open file", includePath)
+						service.log.Println("unable to open file", includePath)
 						hasErrors = true
 						break
 					}
@@ -136,15 +135,15 @@ func (service *CollectionTemplateService) GetAvaliableTemplates() (*[]Collection
 					err = decoder.Decode(&columnDefinitions)
 
 					if err != nil {
-						log.Println("unable to parse file - invalid template - skipping...", err)
+						service.log.Println("unable to parse file - invalid template - skipping...", err)
 						hasErrors = true
 						break
 					}
 
-					log.Println("successfully parsed columns include", columnDefinitions)
+					service.log.Println("successfully parsed columns include", columnDefinitions)
 
 					for _, columnDefinition := range columnDefinitions {
-						log.Println("processing column", columnDefinition)
+						service.log.Println("processing column", columnDefinition)
 
 						column := &Column{
 							ID:          columnDefinition.ID,
@@ -160,7 +159,7 @@ func (service *CollectionTemplateService) GetAvaliableTemplates() (*[]Collection
 					}
 
 					if hasErrors {
-						log.Println("there were any errors while parsing the includes - skipping...")
+						service.log.Println("there were any errors while parsing the includes - skipping...")
 						continue
 					}
 
@@ -168,11 +167,11 @@ func (service *CollectionTemplateService) GetAvaliableTemplates() (*[]Collection
 				}
 			}
 
-			log.Println("finished processing file", filePath)
+			service.log.Println("finished processing file", filePath)
 		}
 	}
 
-	log.Println(results)
+	service.log.Println(results)
 
 	return &results, nil
 }

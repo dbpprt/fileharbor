@@ -1,7 +1,6 @@
 package services
 
 import (
-	"log"
 	"math/rand"
 	"strings"
 	"time"
@@ -19,6 +18,11 @@ import (
 type UserService struct {
 	Service
 }
+
+const (
+	SystemUserID    = "00000000-0000-0000-0000-000000000001"
+	AnonymousUserID = "00000000-0000-0000-0000-000000000000"
+)
 
 func normalizeEmail(email string) string {
 	return strings.ToLower(email)
@@ -42,38 +46,33 @@ func NewUserService(configuration *common.Configuration, database *sqlx.DB, serv
 	return service
 }
 
-func (service *UserService) LogContext() {
-	service.log.Println("log context ###############")
-	service.log.Println(service.Environment)
-}
-
 func (service *UserService) Exists(email string) (bool, error) {
 	user := models.UserEntity{}
 	email = normalizeEmail(email)
 
 	// TODO: logging in this func is crap, make it better
 
-	log.Println("looking up user", email)
+	service.log.Println("looking up user", email)
 	err := service.database.Get(&user, "SELECT * FROM users where email=$1", email)
 
 	// TODO: thhis looks like bullshit, there should be a better way
 	if err != nil && err == sql.ErrNoRows {
-		log.Println("user is not existing yet")
+		service.log.Println("user is not existing yet")
 		return false, nil
 	} else if err != nil {
 		return true, err
 	}
 
-	log.Println("user is already existing", user)
+	service.log.Println("user is already existing", user)
 	return true, nil
 }
 
 func (service *UserService) Login(email string, password string) (*models.UserEntity, error) {
-	log.Println("trying to login user", email)
+	service.log.Println("trying to login user", email)
 
 	// TODO: validate mail while logging in? maybe an issue while updathing the validateEmail function
 	// if err := validateEmail(email); err != nil {
-	// 	log.Println("error while validating email")
+	// 	service.log.Println("error while validating email")
 	// 	return "", err
 	// }
 
@@ -82,25 +81,25 @@ func (service *UserService) Login(email string, password string) (*models.UserEn
 
 	// TODO: logging in this func is crap, make it better
 
-	log.Println("looking up user", email)
+	service.log.Println("looking up user", email)
 	err := service.database.Get(&user, "SELECT * FROM users where email=$1", email)
 
 	// TODO: thhis looks like bullshit, there should be a better way
 	if err == nil {
-		log.Println("user found in database", email)
+		service.log.Println("user found in database", email)
 
 		// bcrypt takes a long time, so we better hide this fast operation
 		time.Sleep(time.Duration(rand.Intn(450)) * time.Millisecond)
 
 		if err := bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(password)); err != nil {
 			// TODO: maybe strip some characters of the log?
-			log.Println("failed login attempt", email, password) // this log is just to identify possible bruteforce attacks
+			service.log.Println("failed login attempt", email, password) // this log is just to identify possible bruteforce attacks
 		} else {
-			log.Println("user succesfully logged in", email)
+			service.log.Println("user succesfully logged in", email)
 			return &user, nil
 		}
 	} else if err != nil && err != sql.ErrNoRows {
-		log.Println("unexpected error while logging in user", email)
+		service.log.Println("unexpected error while logging in user", email)
 		return nil, err
 	}
 
@@ -111,22 +110,22 @@ func (service *UserService) Login(email string, password string) (*models.UserEn
 }
 
 func (service *UserService) Register(email string, givenname string, password string) (string, error) {
-	log.Println("registering new user", email)
+	service.log.Println("registering new user", email)
 
 	if err := validateEmail(email); err != nil {
-		log.Println("error while validating email")
+		service.log.Println("error while validating email")
 		return "", err
 	}
 
 	if exists, err := service.Exists(email); err != nil {
 		return "", err
 	} else if exists == true {
-		log.Println("stopping user creation because user is already existing")
+		service.log.Println("stopping user creation because user is already existing")
 		return "", common.NewApplicationError("user already exists", common.ErrUserAlreadyExisting)
 	}
 
 	if err := validatePassword(password); err != nil {
-		log.Println("error while validating password")
+		service.log.Println("error while validating password")
 		return "", err
 	}
 
@@ -137,22 +136,22 @@ func (service *UserService) Register(email string, givenname string, password st
 	// password hashing
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		log.Println("unable to create password hash - aborting! - never should happen?", password)
+		service.log.Println("unable to create password hash - aborting! - never should happen?", password)
 		return "", err
 	}
 
-	log.Println("beginning insert", id, email)
+	service.log.Println("beginning insert", id, email)
 
 	tx := service.database.MustBegin()
 	_, err = tx.Exec("INSERT INTO users (id, email, givenname, password_hash) VALUES($1, $2, $3, $4)", id, email, givenname, hash)
 
 	if err != nil {
-		log.Println("error while creating user", err)
+		service.log.Println("error while creating user", err)
 		tx.Rollback()
 		return "", err
 	}
 
-	log.Println("user successfully created", id)
+	service.log.Println("user successfully created", id)
 
 	// TODO: move all the creation stuff to the user validated event
 	// TODO: send mail to user
@@ -160,29 +159,29 @@ func (service *UserService) Register(email string, givenname string, password st
 	collection, err := service.CollectionService.Create(tx)
 
 	if err != nil {
-		log.Println("unable to create collection, rolling back user creation")
+		service.log.Println("unable to create collection, rolling back user creation")
 		tx.Rollback()
 		return "", err
 	}
 
-	log.Println("assigning user to newly created collection")
+	service.log.Println("assigning user to newly created collection")
 	err = service.CollectionService.AssignUser(id, collection, tx)
 
 	if err != nil {
-		log.Println("unable to assigning user to collection, rolling back user creation")
+		service.log.Println("unable to assigning user to collection, rolling back user creation")
 		tx.Rollback()
 		return "", err
 	}
 
-	log.Println("committing user creation to database")
+	service.log.Println("committing user creation to database")
 	err = tx.Commit()
 	if err != nil {
-		log.Println("unable to commit transaction for user creation - deleting bucket", err)
+		service.log.Println("unable to commit transaction for user creation - deleting bucket", err)
 		tx.Rollback()
 
 		cleanupErr := service.StorageService.DeleteBucket(collection, false)
 		if cleanupErr != nil {
-			log.Println("unable to cleanup bucket, please delete manually", collection, cleanupErr)
+			service.log.Println("unable to cleanup bucket, please delete manually", collection, cleanupErr)
 		}
 
 		return "", err
