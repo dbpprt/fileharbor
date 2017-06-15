@@ -19,6 +19,8 @@ func NewCollectionService(configuration *common.Configuration, database *sqlx.DB
 }
 
 func (service *CollectionService) Exists(id string) (bool, error) {
+	// TODO: do we need security verification here?
+
 	collection := models.CollectionEntity{}
 	service.log.Println("looking up collection", id)
 	err := service.database.Get(&collection, "SELECT * FROM collections where id=$1", id)
@@ -33,6 +35,26 @@ func (service *CollectionService) Exists(id string) (bool, error) {
 
 	service.log.Println("collection is existing", collection)
 	return true, nil
+}
+
+func (service *CollectionService) Get(id string) (*models.CollectionEntity, error) {
+	service.log.Println("loading collection", id)
+
+	if err := service.AuthorizationService.EnsureCollectionAccess(id); err != nil {
+		service.log.Println("unable to get collection - access denied", err)
+		return nil, err
+	}
+
+	collection := models.CollectionEntity{}
+	err := service.database.Get(&collection, "SELECT * FROM collections where id=$1", id)
+
+	if err != nil {
+		service.log.Println("unable to get collection, maybe not existing", err)
+		return nil, err
+	}
+
+	service.log.Println("collection is existing", collection)
+	return &collection, nil
 }
 
 func (service *CollectionService) Create(tx *sqlx.Tx) (string, error) {
@@ -197,5 +219,68 @@ func (service *CollectionService) UpdateName(collectionID string, name string, t
 	}
 
 	service.log.Println("successfully updated collection name to", name)
+	return nil
+}
+
+func (service *CollectionService) InitializeCollection(collectionID string, templateID string, name *string) error {
+	service.log.Println("trying to initialize collection", collectionID, templateID)
+
+	if err := service.AuthorizationService.EnsureCollectionAccess(collectionID); err != nil {
+		service.log.Println("unable to initialize collection - access denied", err)
+		return err
+	}
+
+	if ok, err := service.Exists(collectionID); err != nil {
+		service.log.Println("unable to verify wether the collection exists", err)
+		return err
+	} else if ok == false {
+		service.log.Println("collection not found", collectionID)
+		return common.NewApplicationError("the desired collection was not found", common.ErrNotFound)
+	}
+
+	collection, err := service.Get(collectionID)
+
+	if err != nil {
+		service.log.Println("unable to initialize collection, the initial loading of the collection failed", err)
+		return err
+	}
+
+	service.log.Println("starting to initialize collection", collection)
+
+	template, err := service.CollectionTemplateService.GetTemplate(templateID)
+
+	if err != nil {
+		service.log.Println("unable to find template", templateID)
+	}
+
+	service.log.Println("starting to apply template", template)
+
+	tx := service.database.MustBegin()
+
+	if name != nil {
+		service.log.Println("update template name", name)
+		err := service.UpdateName(collectionID, *name, tx)
+
+		if err != nil {
+			service.log.Println("unable to set collection name", err)
+			tx.Rollback()
+			return err
+		}
+	}
+
+	for _, column := range template.Columns {
+		service.log.Println("trying to create column", column)
+	}
+
+	service.log.Println("committing collection initialization to database")
+	err = tx.Commit()
+
+	if err != nil {
+		service.log.Println("unable to commit transaction for collection initialization", err)
+		tx.Rollback()
+
+		return err
+	}
+
 	return nil
 }

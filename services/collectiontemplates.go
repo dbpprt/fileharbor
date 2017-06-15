@@ -175,3 +175,22 @@ func (service *CollectionTemplateService) GetAvaliableTemplates() (*[]Collection
 
 	return &results, nil
 }
+
+func (service *CollectionTemplateService) GetTemplate(id string) (*CollectionTemplate, error) {
+	service.log.Println("lookup template", id)
+
+	templates, err := service.GetAvaliableTemplates()
+
+	if err != nil {
+		service.log.Println("unable to lookup template, getting all templates failed")
+		return nil, err
+	}
+
+	for _, current := range *templates {
+		if current.ID == id {
+			return &current, nil
+		}
+	}
+
+	return nil, common.NewApplicationError("the desired template was not found", common.ErrNotFound)
+}
