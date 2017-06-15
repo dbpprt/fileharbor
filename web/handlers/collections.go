@@ -91,3 +91,33 @@ func CollectionsGetMy(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, results)
 }
+
+func CollectionsUpdateName(c echo.Context) error {
+	ctx := c.(*context.Context)
+
+	type params struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
+	}
+
+	param := new(params)
+	if err := c.Bind(param); err != nil {
+		log.Println("unable to bind request body")
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	err := ctx.CollectionService.UpdateName(param.ID, param.Name, nil)
+
+	if err != nil {
+		if applicationError, ok := err.(*common.ApplicationError); ok {
+			response := helper.NewErrorResponse(applicationError.Code, applicationError.Error())
+			return c.JSON(http.StatusOK, response)
+		}
+
+		log.Println("unexpected error occurred - sending 500", err)
+		response := helper.NewUnexpectedErrorResponse()
+		return c.JSON(http.StatusInternalServerError, response)
+	}
+
+	return c.NoContent(http.StatusOK)
+}

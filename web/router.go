@@ -24,6 +24,7 @@ func configureRoutes(e *echo.Echo, anonymous *echo.Group, authenticated *echo.Gr
 	// collections.go
 	authenticated.GET("/collections/templates/", handlers.CollectionsGetTemplates)
 	authenticated.GET("/collections/my/", handlers.CollectionsGetMy)
+	authenticated.POST("/collections/name/", handlers.CollectionsUpdateName)
 
 	return nil
 }

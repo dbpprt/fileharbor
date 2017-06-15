@@ -151,7 +151,7 @@ func (service *CollectionService) MyCollections() (*[]models.CollectionEntity, e
 	return &collections, nil
 }
 
-func (service *CollectionService) UpdateName(collectionID string, name string) error {
+func (service *CollectionService) UpdateName(collectionID string, name string, tx *sqlx.Tx) error {
 	service.log.Println("trying to update collection name", collectionID, name)
 
 	if err := service.AuthorizationService.EnsureCollectionAccess(collectionID); err != nil {
@@ -159,12 +159,41 @@ func (service *CollectionService) UpdateName(collectionID string, name string) e
 		return err
 	}
 
-	// TODO: add proper transaction handling
-	_, err := service.database.Exec("UPDATE collections SET name = '$1' WHERE collections.id = $2", collectionID, name)
+	if ok, err := service.Exists(collectionID); err != nil {
+		service.log.Println("unable to verify wether the collection exists", err)
+		return err
+	} else if ok == false {
+		service.log.Println("collection not found", collectionID)
+		return common.NewApplicationError("the desired collection was not found", common.ErrNotFound)
+	}
+
+	commit := false
+	if tx == nil {
+		tx = service.database.MustBegin()
+		commit = true
+	}
+
+	_, err := tx.Exec("UPDATE collections SET name = $1 WHERE collections.id = $2", name, collectionID)
 
 	if err != nil {
 		service.log.Println("unexpected error while updating collection name", err)
+
+		if commit {
+			tx.Rollback()
+		}
+
 		return err
+	}
+
+	if commit == true {
+		err := tx.Commit()
+
+		if err != nil {
+			service.log.Println("error while executing transaction", err)
+			return err
+		}
+	} else {
+		service.log.Println("transaction passed to function - skipping commit")
 	}
 
 	service.log.Println("successfully updated collection name to", name)
