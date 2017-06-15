@@ -143,8 +143,30 @@ func (service *CollectionService) MyCollections() (*[]models.CollectionEntity, e
 	`, userID)
 
 	if err != nil {
+		service.log.Println("unexpected error while getting my collections", err)
 		return nil, err
 	}
 
+	service.log.Println("successfully fetched my collections", collections)
 	return &collections, nil
+}
+
+func (service *CollectionService) UpdateName(collectionID string, name string) error {
+	service.log.Println("trying to update collection name", collectionID, name)
+
+	if err := service.AuthorizationService.EnsureCollectionAccess(collectionID); err != nil {
+		service.log.Println("unable to update collection name - access denied", err)
+		return err
+	}
+
+	// TODO: add proper transaction handling
+	_, err := service.database.Exec("UPDATE collections SET name = '$1' WHERE collections.id = $2", collectionID, name)
+
+	if err != nil {
+		service.log.Println("unexpected error while updating collection name", err)
+		return err
+	}
+
+	service.log.Println("successfully updated collection name to", name)
+	return nil
 }

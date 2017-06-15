@@ -29,3 +29,7 @@ func (service *AuthorizationService) IsLoggedInUser() bool {
 func (service *AuthorizationService) EnsureLoggedInUser() error {
 	return nil
 }
+
+func (service *AuthorizationService) EnsureCollectionAccess(collectionID string) error {
+	return nil
+}

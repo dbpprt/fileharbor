@@ -4,6 +4,7 @@
 the way to combine letters, emails, receipts in the 20th century :P - mainly inspired by personal requirements
 
 # Roadmap v1
+- proper error handling
 - file management
 - columns, content-types and libraries working
 - file upload in inbox and library

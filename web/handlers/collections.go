@@ -50,7 +50,10 @@ func CollectionsGetMy(c echo.Context) error {
 	ctx := c.(*context.Context)
 
 	type collection struct {
-		ID string `json:"id"`
+		ID         string  `json:"id"`
+		Name       *string `json:"name"`
+		TemplateId *string `json:"template_id"`
+		IsDefault  bool    `json:"is_default"`
 	}
 
 	collections, err := ctx.CollectionService.MyCollections()
@@ -68,9 +71,22 @@ func CollectionsGetMy(c echo.Context) error {
 
 	var results []collection
 	for _, current := range *collections {
-		results = append(results, collection{
-			ID: current.ID,
-		})
+		result := collection{
+			ID:         current.ID,
+			Name:       nil,
+			TemplateId: nil,
+			IsDefault:  current.IsDefault,
+		}
+
+		if current.Name.Valid {
+			result.Name = &current.Name.String
+		}
+
+		if current.TemplateId.Valid {
+			result.TemplateId = &current.TemplateId.String
+		}
+
+		results = append(results, result)
 	}
 
 	return c.JSON(http.StatusOK, results)
