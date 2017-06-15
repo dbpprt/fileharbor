@@ -107,8 +107,8 @@ func (service *CollectionService) Create(tx *sqlx.Tx) (string, error) {
 	return id, nil
 }
 
-func (service *CollectionService) AssignUser(userId string, id string, tx *sqlx.Tx) error {
-	service.log.Println("assign user to collection", userId, id)
+func (service *CollectionService) AssignUser(userID string, id string, tx *sqlx.Tx) error {
+	service.log.Println("assign user to collection", userID, id)
 
 	// TODO: should not always be true?
 	isDefault := true
@@ -119,7 +119,7 @@ func (service *CollectionService) AssignUser(userId string, id string, tx *sqlx.
 		commit = true
 	}
 
-	_, err := tx.Exec("INSERT INTO user_collection_mappings (user_id, collection_id, is_default) VALUES ($1, $2, $3)", userId, id, isDefault)
+	_, err := tx.Exec("INSERT INTO user_collection_mappings (user_id, collection_id, is_default) VALUES ($1, $2, $3)", userID, id, isDefault)
 
 	if err != nil {
 		service.log.Println("unable to create collection", err)
@@ -154,7 +154,7 @@ func (service *CollectionService) MyCollections() (*[]models.CollectionEntity, e
 	}
 
 	collections := []models.CollectionEntity{}
-	userID := service.Environment.CurrentUserId
+	userID := service.Environment.CurrentUserID
 
 	err := service.database.Select(&collections, `
 		SELECT
@@ -270,6 +270,8 @@ func (service *CollectionService) InitializeCollection(collectionID string, temp
 
 	for _, column := range template.Columns {
 		service.log.Println("trying to create column", column)
+
+		service.ColumnService.Create(&column, collectionID)
 	}
 
 	service.log.Println("committing collection initialization to database")

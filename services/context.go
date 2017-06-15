@@ -12,10 +12,10 @@ import (
 )
 
 type ServiceEnvironment struct {
-	CurrentUserId           string
+	CurrentUserID           string
 	Email                   string
 	CurrentUserIsSuperAdmin bool
-	RequestId               string
+	RequestID               string
 	// TODO: custom logger
 }
 
@@ -65,35 +65,35 @@ func NewServiceContext(configuration *common.Configuration, environment *Service
 	ctx.AuthorizationService = NewAuthorizationService(configuration, database, ctx)
 
 	if ctx.Environment != nil {
-		ctx.log = log.New(os.Stdout, "("+ctx.Environment.RequestId+") ("+environment.Email+") ", log.LstdFlags|log.Ldate|log.Ltime|log.Lshortfile)
+		ctx.log = log.New(os.Stdout, "("+ctx.Environment.RequestID+") ("+environment.Email+") ", log.LstdFlags|log.Ldate|log.Ltime|log.Lshortfile)
 	}
 
 	return ctx
 }
 
-func NewAnonymousEnvironment(requestId string) *ServiceEnvironment {
+func NewAnonymousEnvironment(requestID string) *ServiceEnvironment {
 	return &ServiceEnvironment{
-		CurrentUserId: AnonymousUserID,
+		CurrentUserID: AnonymousUserID,
 		Email:         "anonymous",
 		CurrentUserIsSuperAdmin: false,
-		RequestId:               requestId,
+		RequestID:               requestID,
 	}
 }
 
-func NewUserEnvironment(requestId string, userId string, email string, superAdmin bool) *ServiceEnvironment {
+func NewUserEnvironment(requestID string, userID string, email string, superAdmin bool) *ServiceEnvironment {
 	return &ServiceEnvironment{
-		CurrentUserId: userId,
+		CurrentUserID: userID,
 		Email:         email,
 		CurrentUserIsSuperAdmin: superAdmin,
-		RequestId:               requestId,
+		RequestID:               requestID,
 	}
 }
 
 func NewSystemEnvironment() *ServiceEnvironment {
 	return &ServiceEnvironment{
-		CurrentUserId: SystemUserID,
+		CurrentUserID: SystemUserID,
 		Email:         "system",
 		CurrentUserIsSuperAdmin: true,
-		RequestId:               uuid.Nil.String(),
+		RequestID:               uuid.Nil.String(),
 	}
 }

@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.0-beta1" author="Dennis Bappert" last-position="174,0" last-zoom="1"
+<dbmodel pgmodeler-ver="0.9.0-beta1" author="Dennis Bappert" last-position="174,279" last-zoom="1"
 	 default-schema="public" default-owner="postgres">
 <database name="fileharbor">
 </database>
@@ -115,14 +115,14 @@ CAUTION: Do not modify this file unless you know what you are doing.
 		<type name="jsonb" length="0"/>
 	</column>
 	<constraint name="columns_pk" type="pk-constr" table="public.columns">
-		<columns names="id" ref-type="src-columns"/>
+		<columns names="id,collection_id" ref-type="src-columns"/>
 	</constraint>
 </table>
 
 <table name="contenttypes">
 	<schema name="public"/>
 	<role name="postgres"/>
-	<position x="800" y="660"/>
+	<position x="800" y="680"/>
 	<column name="id" not-null="true">
 		<type name="uuid" length="0"/>
 	</column>
@@ -139,7 +139,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 		<type name="text" length="0"/>
 	</column>
 	<constraint name="contenttypes_pk" type="pk-constr" table="public.contenttypes">
-		<columns names="id" ref-type="src-columns"/>
+		<columns names="id,collection_id" ref-type="src-columns"/>
 	</constraint>
 </table>
 
@@ -153,6 +153,9 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<column name="column_id" not-null="true">
 		<type name="uuid" length="0"/>
 	</column>
+	<column name="collection_id" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
 	<column name="required" not-null="true" default-value="false">
 		<type name="bool" length="0"/>
 	</column>
@@ -163,7 +166,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 		<type name="text" length="0"/>
 	</column>
 	<constraint name="contenttype_column_mappings_pk" type="pk-constr" table="public.contenttype_column_mappings">
-		<columns names="contenttype_id,column_id" ref-type="src-columns"/>
+		<columns names="contenttype_id,column_id,collection_id" ref-type="src-columns"/>
 	</constraint>
 </table>
 
@@ -193,20 +196,20 @@ CAUTION: Do not modify this file unless you know what you are doing.
 
 <constraint name="parent_fk" type="fk-constr" comparison-type="MATCH FULL"
 	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.contenttypes" table="public.contenttypes">
-	<columns names="parent_id" ref-type="src-columns"/>
-	<columns names="id" ref-type="dst-columns"/>
+	<columns names="parent_id,collection_id" ref-type="src-columns"/>
+	<columns names="id,collection_id" ref-type="dst-columns"/>
 </constraint>
 
 <constraint name="columns_fk" type="fk-constr" comparison-type="MATCH FULL"
 	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.columns" table="public.contenttype_column_mappings">
-	<columns names="column_id" ref-type="src-columns"/>
-	<columns names="id" ref-type="dst-columns"/>
+	<columns names="column_id,collection_id" ref-type="src-columns"/>
+	<columns names="id,collection_id" ref-type="dst-columns"/>
 </constraint>
 
 <constraint name="contenttypes_fk" type="fk-constr" comparison-type="MATCH FULL"
 	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.contenttypes" table="public.contenttype_column_mappings">
-	<columns names="contenttype_id" ref-type="src-columns"/>
-	<columns names="id" ref-type="dst-columns"/>
+	<columns names="contenttype_id,collection_id" ref-type="src-columns"/>
+	<columns names="id,collection_id" ref-type="dst-columns"/>
 </constraint>
 
 <relationship name="rel_user_collection_mappings_users" type="relfk"
@@ -244,9 +247,9 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	 dst-table="public.contenttypes"
 	 src-required="false" dst-required="false">
 	<line>
-		<position x="1047.52" y="723.998"/>
-	<position x="1047.52" y="651"/>
-	<position x="959.01" y="651"/>
+		<position x="1047.52" y="743.998"/>
+	<position x="1047.52" y="671"/>
+	<position x="959.01" y="671"/>
 	</line>
 </relationship>
 
