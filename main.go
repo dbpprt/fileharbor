@@ -34,6 +34,11 @@ func main() {
 	}
 	log.Println("parsed configuration", configuration)
 
+	if *debugFlag || configuration.DebugMode {
+		log.Println("running in debug mode - do not use this mode for production!")
+		configuration.DebugMode = true // for all other modules
+	}
+
 	log.Println("connecting to database")
 	db, err := database.Initialize(&configuration)
 	if err != nil {

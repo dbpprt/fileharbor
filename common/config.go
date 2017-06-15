@@ -6,6 +6,8 @@ import (
 )
 
 type Configuration struct {
+	DebugMode bool `json:"debug"`
+
 	Addr             string `json:"addr"`
 	ConnectionString string `json:"connection_string"`
 	ReadTimeout      int    `json:"read_timeout"`

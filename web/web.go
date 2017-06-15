@@ -30,10 +30,16 @@ func Initialize(configuration *common.Configuration, services *services.Services
 		},
 	}))
 
+	if configuration.DebugMode {
+		log.Println("enabling unrestricted cors for debugging purposes!")
+		e.Use(middleware.CORS())
+	}
+
 	// register our custom context to avoid package global variables
 	e.Use(func(handlerFunc echo.HandlerFunc) echo.HandlerFunc {
 		return func(echoContext echo.Context) error {
-			// TODO: debug this code to find out the actual behaviour
+			// TODO: debug this code to find out the actual behaviour - done!
+			// TODO: create the services instance here to place a custom context into it with a custom logger, the current user and the current request id
 			// TODO: add current request context to the object: -> current user & collection & request id
 			ctx, err := context.New(&echoContext, configuration, services)
 
@@ -54,15 +60,14 @@ func Initialize(configuration *common.Configuration, services *services.Services
 		Level: -1,
 	}))
 
-	configureRoutes(e)
+	configureRoutes(e, configuration)
 
-	// TODO: read from config
 	// TODO: graceful shutdown
 
 	log.Println("starting http server", configuration.Addr)
 	e.Logger.Fatal(e.StartServer(&http.Server{
 		Addr:         configuration.Addr,
-		ReadTimeout:  time.Duration(configuration.ReadTimeout) * time.Minute,
-		WriteTimeout: time.Duration(configuration.WriteTimeout) * time.Minute,
+		ReadTimeout:  time.Duration(configuration.ReadTimeout) * time.Second,
+		WriteTimeout: time.Duration(configuration.WriteTimeout) * time.Second,
 	}))
 }

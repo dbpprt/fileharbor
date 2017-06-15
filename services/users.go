@@ -2,7 +2,9 @@ package services
 
 import (
 	"log"
+	"math/rand"
 	"strings"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -82,6 +84,9 @@ func (service *UserService) Login(email string, password string) error {
 	if err == nil {
 		log.Println("user found in database", email)
 
+		// bcrypt takes a long time, so we better hide this fast operation
+		time.Sleep(time.Duration(rand.Intn(450)) * time.Millisecond)
+
 		if err := bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(password)); err != nil {
 			// TODO: maybe strip some characters of the log?
 			log.Println("failed login attempt", email, password) // this log is just to identify possible bruteforce attacks
@@ -93,6 +98,9 @@ func (service *UserService) Login(email string, password string) error {
 		log.Println("unexpected error while logging in user", email)
 		return err
 	}
+
+	// bcrypt takes a long time, so we better hide this fast operation - bcrypt takes about 80ms on a core i7 energy saver in curacao at about 30 degress ;)
+	time.Sleep(time.Duration(rand.Intn(450)) * time.Millisecond)
 
 	return common.NewApplicationError("Unable to login", common.ErrLoginFailed)
 }
