@@ -37,9 +37,14 @@ func validatePassword(password string) error {
 	return nil
 }
 
-func NewUserService(configuration *common.Configuration, database *sqlx.DB, services *Services) *UserService {
-	service := &UserService{Service{database: database, configuration: configuration, Services: services}}
+func NewUserService(configuration *common.Configuration, database *sqlx.DB, services *ServiceContext) *UserService {
+	service := &UserService{Service{database: database, configuration: configuration, ServiceContext: services}}
 	return service
+}
+
+func (service *UserService) LogContext() {
+	service.log.Println("log context ###############")
+	service.log.Println(service.Environment)
 }
 
 func (service *UserService) Exists(email string) (bool, error) {
@@ -63,7 +68,7 @@ func (service *UserService) Exists(email string) (bool, error) {
 	return true, nil
 }
 
-func (service *UserService) Login(email string, password string) error {
+func (service *UserService) Login(email string, password string) (*models.UserEntity, error) {
 	log.Println("trying to login user", email)
 
 	// TODO: validate mail while logging in? maybe an issue while updathing the validateEmail function
@@ -78,7 +83,7 @@ func (service *UserService) Login(email string, password string) error {
 	// TODO: logging in this func is crap, make it better
 
 	log.Println("looking up user", email)
-	err := service.database.Get(&user, "SELECT password_hash FROM users where email=$1", email)
+	err := service.database.Get(&user, "SELECT * FROM users where email=$1", email)
 
 	// TODO: thhis looks like bullshit, there should be a better way
 	if err == nil {
@@ -92,17 +97,17 @@ func (service *UserService) Login(email string, password string) error {
 			log.Println("failed login attempt", email, password) // this log is just to identify possible bruteforce attacks
 		} else {
 			log.Println("user succesfully logged in", email)
-			return nil
+			return &user, nil
 		}
 	} else if err != nil && err != sql.ErrNoRows {
 		log.Println("unexpected error while logging in user", email)
-		return err
+		return nil, err
 	}
 
 	// bcrypt takes a long time, so we better hide this fast operation - bcrypt takes about 80ms on a core i7 energy saver in curacao at about 30 degress ;)
 	time.Sleep(time.Duration(rand.Intn(450)) * time.Millisecond)
 
-	return common.NewApplicationError("Unable to login", common.ErrLoginFailed)
+	return nil, common.NewApplicationError("Unable to login", common.ErrLoginFailed)
 }
 
 func (service *UserService) Register(email string, givenname string, password string) (string, error) {

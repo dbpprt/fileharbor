@@ -26,8 +26,8 @@ type CollectionTemplate struct {
 	Columns     []Column
 }
 
-func NewCollectionTemplateService(configuration *common.Configuration, database *sqlx.DB, services *Services) *CollectionTemplateService {
-	service := &CollectionTemplateService{Service{database: database, configuration: configuration, Services: services}}
+func NewCollectionTemplateService(configuration *common.Configuration, database *sqlx.DB, services *ServiceContext) *CollectionTemplateService {
+	service := &CollectionTemplateService{Service{database: database, configuration: configuration, ServiceContext: services}}
 	return service
 }
 

@@ -13,8 +13,8 @@ type StorageService struct {
 	storage *minio.Client
 }
 
-func NewStorageService(configuration *common.Configuration, database *sqlx.DB, storage *minio.Client, services *Services) *StorageService {
-	service := &StorageService{Service{database: database, configuration: configuration, Services: services}, storage}
+func NewStorageService(configuration *common.Configuration, database *sqlx.DB, storage *minio.Client, services *ServiceContext) *StorageService {
+	service := &StorageService{Service{database: database, configuration: configuration, ServiceContext: services}, storage}
 	return service
 }
 

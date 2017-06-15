@@ -26,7 +26,7 @@ func UsersLogin(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	err := ctx.UserService.Login(req.Email, req.Password)
+	user, err := ctx.UserService.Login(req.Email, req.Password)
 
 	if err != nil {
 		if applicationError, ok := err.(*common.ApplicationError); ok {
@@ -39,11 +39,16 @@ func UsersLogin(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, response)
 	}
 
-	token := jwt.New(jwt.SigningMethodHS256)
+	claims := &helper.Claims{
+		ID:         user.ID,
+		Email:      user.Email,
+		SuperAdmin: user.SuperAdmin,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Hour * time.Duration(ctx.Configuration.Token.Lifetime)).Unix(),
+		},
+	}
 
-	// set claims
-	claims := token.Claims.(jwt.MapClaims)
-	claims["exp"] = time.Now().Add(time.Hour * time.Duration(ctx.Configuration.Token.Lifetime)).Unix()
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	// generate encoded token and send it as response.
 	signedString, err := token.SignedString([]byte(ctx.Configuration.Token.Secret))

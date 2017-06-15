@@ -14,8 +14,8 @@ type CollectionService struct {
 	Service
 }
 
-func NewCollectionService(configuration *common.Configuration, database *sqlx.DB, services *Services) *CollectionService {
-	service := &CollectionService{Service{database: database, configuration: configuration, Services: services}}
+func NewCollectionService(configuration *common.Configuration, database *sqlx.DB, services *ServiceContext) *CollectionService {
+	service := &CollectionService{Service{database: database, configuration: configuration, ServiceContext: services}}
 	return service
 }
 

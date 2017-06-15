@@ -7,15 +7,17 @@ import (
 
 	"github.com/dennisbappert/fileharbor/common"
 	"github.com/dennisbappert/fileharbor/web/context"
+	jwt "github.com/dgrijalva/jwt-go"
 	uuid "github.com/satori/go.uuid"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 
 	"github.com/dennisbappert/fileharbor/services"
+	"github.com/dennisbappert/fileharbor/web/helper"
 )
 
-func Initialize(configuration *common.Configuration, services *services.Services) {
+func Initialize(configuration *common.Configuration, serviceContext *services.ServiceContext) {
 	e := echo.New()
 	e.HideBanner = true
 
@@ -31,6 +33,8 @@ func Initialize(configuration *common.Configuration, services *services.Services
 	}))
 	// TODO: set request id as response header!
 
+	// TODO: implement auto tls
+
 	if configuration.DebugMode {
 		log.Println("enabling unrestricted cors for debugging purposes!")
 		e.Use(middleware.CORS())
@@ -45,15 +49,17 @@ func Initialize(configuration *common.Configuration, services *services.Services
 			// TODO: debug this code to find out the actual behaviour - done!
 			// TODO: create the services instance here to place a custom context into it with a custom logger, the current user and the current request id
 			// TODO: add current request context to the object: -> current user & collection & request id
-			ctx, err := context.New(&echoContext, configuration, services)
+			// TODO: add a logger instance which includes a unique request id
 
+			// were passing a new service context from the existing one but with an empty serviceenvironemnt which means => anonymous user
+			serviceContext.UserService.LogContext()
+			ctx, err := context.New(&echoContext, configuration, serviceContext.NewServiceContext(nil))
+			ctx.UserService.LogContext()
 			if err != nil {
 				return err
 			}
 
 			return handlerFunc(ctx)
-
-			// TODO: add a logger instance which includes a unique request id
 		}
 	})
 
@@ -65,21 +71,49 @@ func Initialize(configuration *common.Configuration, services *services.Services
 	}))
 
 	// authentication middleware
-	authMiddleware := middleware.JWT([]byte(configuration.Token.Secret))
+	config := middleware.JWTConfig{
+		Claims:     &helper.Claims{},
+		SigningKey: []byte(configuration.Token.Secret),
+	}
+	authMiddleware := middleware.JWTWithConfig(config)
+
+	contextMiddleware := func(handlerFunc echo.HandlerFunc) echo.HandlerFunc {
+		return func(echoContext echo.Context) error {
+			// get request id
+			requestId := echoContext.Response().Header().Get(echo.HeaderXRequestID)
+			log.Println("looking up request id for incomming request", requestId)
+
+			var currentServiceContext *services.ServiceContext = nil
+			if token, ok := echoContext.Get("user").(*jwt.Token); ok {
+				log.Println("fetched context from context", token)
+
+				claims := token.Claims.(*helper.Claims)
+				log.Println("extracted user identity from signed token", claims.Email)
+
+				currentServiceContext = serviceContext.NewServiceContext(nil)
+			} else {
+				log.Println("no valid token and identitfy found")
+			}
+
+			if currentServiceContext == nil {
+				currentServiceContext = serviceContext.NewServiceContext(nil)
+			}
+
+			ctx, err := context.New(&echoContext, configuration, currentServiceContext)
+
+			if err != nil {
+				log.Println("unable to set context", err)
+				return err
+			}
+
+			return handlerFunc(ctx)
+		}
+	}
 
 	// build our different groups
-	anonymous := e.Group("")
-	authenticated := e.Group("", authMiddleware)
-	superadmin := e.Group("", authMiddleware) // TODO: not implemented yet :(
-
-	// TODO: inject current user in our context (custom context)
-	authenticated.Use(func(handlerFunc echo.HandlerFunc) echo.HandlerFunc {
-		return func(echoContext echo.Context) error {
-			log.Println(echoContext.Get("user"))
-			log.Println("custom handler")
-			return handlerFunc(echoContext)
-		}
-	})
+	anonymous := e.Group("", contextMiddleware)
+	authenticated := e.Group("", authMiddleware, contextMiddleware)
+	superadmin := e.Group("", authMiddleware, contextMiddleware) // TODO: not implemented yet :(
 
 	configureRoutes(e, anonymous, authenticated, superadmin, configuration)
 

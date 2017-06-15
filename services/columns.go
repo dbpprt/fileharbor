@@ -35,8 +35,8 @@ type TextColumnSettings struct {
 	MaxLength int `json:"max-length"`
 }
 
-func NewColumnService(configuration *common.Configuration, database *sqlx.DB, services *Services) *ColumnService {
-	service := &ColumnService{Service{database: database, configuration: configuration, Services: services}}
+func NewColumnService(configuration *common.Configuration, database *sqlx.DB, services *ServiceContext) *ColumnService {
+	service := &ColumnService{Service{database: database, configuration: configuration, ServiceContext: services}}
 	return service
 }
 

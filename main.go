@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+	"os"
 	"runtime"
 	"time"
 
@@ -25,8 +26,8 @@ var (
 )
 
 func main() {
-	// TODO: configure logging from config
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	log.SetFlags(log.LstdFlags | log.Ldate | log.Ltime | log.Lshortfile)
+	log.SetOutput(os.Stdout)
 
 	log.Println("parsing config file", *configurationFile)
 	configuration := common.Configuration{}
@@ -49,6 +50,8 @@ func main() {
 	}
 	log.Println("connection to database established successfully")
 
+	// TODO: create a storage proxy endpoint as reverse proxy for minio to enable traffic counting
+
 	log.Println("connecting to storage endpoint", configuration.Storage.Endpoint)
 	mc, err := minio.New(configuration.Storage.Endpoint, configuration.Storage.AccessKey, configuration.Storage.SecretKey, configuration.Storage.UseSSL)
 	if err != nil {
@@ -70,11 +73,12 @@ func main() {
 		}()
 	}
 
-	services := services.Initialize(&configuration, db, mc)
+	// the servicecontext is kind of a unit of work . it couples all business logic
+	serviceContext := services.NewServiceContext(&configuration, services.NewSystemEnvironment(), db, mc)
 
 	if *webFlag {
 		log.Println("starting web interface")
-		web.Initialize(&configuration, services)
+		web.Initialize(&configuration, serviceContext)
 	}
 
 	defer db.Close()
