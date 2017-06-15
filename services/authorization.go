@@ -25,3 +25,7 @@ func (service *AuthorizationService) IsSystem() bool {
 func (service *AuthorizationService) IsLoggedInUser() bool {
 	return false
 }
+
+func (service *AuthorizationService) EnsureLoggedInUser() error {
+	return nil
+}

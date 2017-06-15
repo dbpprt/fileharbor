@@ -96,7 +96,7 @@ func (service *CollectionService) AssignUser(userId string, id string, tx *sqlx.
 		tx = service.database.MustBegin()
 		commit = true
 	}
-	// TODO: error handling
+
 	_, err := tx.Exec("INSERT INTO user_collection_mappings (user_id, collection_id, is_default) VALUES ($1, $2, $3)", userId, id, isDefault)
 
 	if err != nil {
@@ -123,7 +123,28 @@ func (service *CollectionService) AssignUser(userId string, id string, tx *sqlx.
 	return nil
 }
 
-func (servce *CollectionService) MyCollections() ([]*models.CollectionEntity, error) {
+func (service *CollectionService) MyCollections() (*[]models.CollectionEntity, error) {
+	service.log.Println("trying to fetch my collections")
 
-	return nil, nil
+	if err := service.AuthorizationService.EnsureLoggedInUser(); err != nil {
+		service.log.Println("unable to fetch my collections - no valid user identity", err)
+		return nil, err
+	}
+
+	collections := []models.CollectionEntity{}
+	userID := service.Environment.CurrentUserId
+
+	err := service.database.Select(&collections, `
+		SELECT
+			collections.*,
+			user_collection_mappings.is_default "user_collection_mapping.is_default"
+		FROM collections, user_collection_mappings
+		WHERE collections.id = user_collection_mappings.collection_id AND user_collection_mappings.user_id = $1
+	`, userID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &collections, nil
 }

@@ -6,6 +6,8 @@ const (
 	ErrUnexpected          = "err-unexpected"
 	ErrPasswordTooShort    = "err-password-too-short"
 	ErrLoginFailed         = "err-login-failed"
+	ErrNotAuthenticated    = "err-not-authenticed"
+	ErrNotSupported        = "err-not-supported"
 )
 
 type ApplicationError struct {
