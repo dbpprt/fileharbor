@@ -43,26 +43,6 @@ func Initialize(configuration *common.Configuration, serviceContext *services.Se
 		e.Debug = true
 	}
 
-	// register our custom context to avoid package global variables
-	e.Use(func(handlerFunc echo.HandlerFunc) echo.HandlerFunc {
-		return func(echoContext echo.Context) error {
-			// TODO: debug this code to find out the actual behaviour - done!
-			// TODO: create the services instance here to place a custom context into it with a custom logger, the current user and the current request id
-			// TODO: add current request context to the object: -> current user & collection & request id
-			// TODO: add a logger instance which includes a unique request id
-
-			// were passing a new service context from the existing one but with an empty serviceenvironemnt which means => anonymous user
-			serviceContext.UserService.LogContext()
-			ctx, err := context.New(&echoContext, configuration, serviceContext.NewServiceContext(nil))
-			ctx.UserService.LogContext()
-			if err != nil {
-				return err
-			}
-
-			return handlerFunc(ctx)
-		}
-	})
-
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
@@ -80,23 +60,23 @@ func Initialize(configuration *common.Configuration, serviceContext *services.Se
 	contextMiddleware := func(handlerFunc echo.HandlerFunc) echo.HandlerFunc {
 		return func(echoContext echo.Context) error {
 			// get request id
-			requestId := echoContext.Response().Header().Get(echo.HeaderXRequestID)
-			log.Println("looking up request id for incomming request", requestId)
+			requestID := echoContext.Response().Header().Get(echo.HeaderXRequestID)
+			log.Println("looking up request id for incomming request", requestID)
 
-			var currentServiceContext *services.ServiceContext = nil
+			var currentServiceContext *services.ServiceContext
 			if token, ok := echoContext.Get("user").(*jwt.Token); ok {
 				log.Println("fetched context from context", token)
 
 				claims := token.Claims.(*helper.Claims)
 				log.Println("extracted user identity from signed token", claims.Email)
 
-				currentServiceContext = serviceContext.NewServiceContext(nil)
+				currentServiceContext = serviceContext.NewServiceContext(services.NewUserEnvironment(requestID, claims.ID, claims.Email, claims.SuperAdmin))
 			} else {
 				log.Println("no valid token and identitfy found")
 			}
 
 			if currentServiceContext == nil {
-				currentServiceContext = serviceContext.NewServiceContext(nil)
+				currentServiceContext = serviceContext.NewServiceContext(services.NewAnonymousEnvironment(requestID))
 			}
 
 			ctx, err := context.New(&echoContext, configuration, currentServiceContext)

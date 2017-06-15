@@ -13,6 +13,7 @@ import (
 
 type ServiceEnvironment struct {
 	CurrentUserId           string
+	Email                   string
 	CurrentUserIsSuperAdmin bool
 	RequestId               string
 	// TODO: custom logger
@@ -62,16 +63,28 @@ func NewServiceContext(configuration *common.Configuration, environment *Service
 	ctx.ColumnService = NewColumnService(configuration, database, ctx)
 
 	if ctx.Environment != nil {
-		ctx.log = log.New(os.Stdout, "("+ctx.Environment.RequestId+") ", log.LstdFlags|log.Ldate|log.Ltime|log.Lshortfile)
-	} else {
-		ctx.log = log.New(os.Stdout, "(app) ", log.LstdFlags|log.Ldate|log.Ltime|log.Lshortfile)
+		ctx.log = log.New(os.Stdout, "("+ctx.Environment.RequestId+") ("+environment.Email+") ", log.LstdFlags|log.Ldate|log.Ltime|log.Lshortfile)
 	}
 
 	return ctx
 }
 
-func (serviceContext *ServiceContext) SetEnvironment(environment *ServiceEnvironment) {
-	serviceContext.Environment = environment
+func NewAnonymousEnvironment(requestId string) *ServiceEnvironment {
+	return &ServiceEnvironment{
+		CurrentUserId: uuid.Nil.String(),
+		Email:         "anonymous",
+		CurrentUserIsSuperAdmin: false,
+		RequestId:               requestId,
+	}
+}
+
+func NewUserEnvironment(requestId string, userId string, email string, superAdmin bool) *ServiceEnvironment {
+	return &ServiceEnvironment{
+		CurrentUserId: uuid.Nil.String(),
+		Email:         "anonymous",
+		CurrentUserIsSuperAdmin: false,
+		RequestId:               requestId,
+	}
 }
 
 func NewSystemEnvironment() *ServiceEnvironment {

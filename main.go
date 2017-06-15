@@ -9,6 +9,7 @@ import (
 
 	"github.com/dennisbappert/fileharbor/common"
 	minio "github.com/minio/minio-go"
+	uuid "github.com/satori/go.uuid"
 
 	"github.com/dennisbappert/fileharbor/database"
 	"github.com/dennisbappert/fileharbor/services"
@@ -27,6 +28,7 @@ var (
 
 func main() {
 	log.SetFlags(log.LstdFlags | log.Ldate | log.Ltime | log.Lshortfile)
+	log.SetPrefix("(" + uuid.Nil.String() + ") (system) ")
 	log.SetOutput(os.Stdout)
 
 	log.Println("parsing config file", *configurationFile)
