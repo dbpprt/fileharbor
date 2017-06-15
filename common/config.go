@@ -12,6 +12,11 @@ type Configuration struct {
 	WriteTimeout     int    `json:"write_timeout"`
 	DefaultQuota     int    `json:"default_quota"`
 
+	Token struct {
+		Lifetime int    `json:"lifetime"`
+		Secret   string `json:"secret"`
+	} `json:"token"`
+
 	Storage struct {
 		AccessKey string `json:"access_key"`
 		SecretKey string `json:"secret_key"`

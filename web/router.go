@@ -13,6 +13,7 @@ func configureRoutes(e *echo.Echo) error {
 
 	// users.go
 	e.POST("/users/register/", handlers.UsersRegister)
+	e.POST("/users/login/", handlers.UsersLogin)
 
 	// collections.go
 	e.GET("/collections/templates/", handlers.CollectionsGetTemplates)

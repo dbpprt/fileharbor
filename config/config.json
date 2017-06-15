@@ -1,15 +1,19 @@
 {
-     "addr": ":8080",
-     "read_timeout": 20,
-     "write_timeout": 20,
-     "connection_string": "user=user dbname=fileharbor sslmode=disable",
-     "default_quota": 1000,
-     "storage": {
-         "access_key": "I479N5LV2LSU72WTV0ZX",
-         "secret_key": "K7oOe8Zbw50zZ2gNLK7GhbeVavLaCcmcLfw1t9bU",
-         "region": "germany",
-         "endpoint": "127.0.0.1:9001",
-         "use_ssl": false
-     },
-     "template_folder": "./config/templates"
+    "addr": ":8080",
+    "read_timeout": 20,
+    "write_timeout": 20,
+    "connection_string": "user=user dbname=fileharbor sslmode=disable",
+    "default_quota": 1000,
+    "token": {
+        "secret": "dccadd40-0f36-4711-b54b-d59be3fb228a",
+        "lifetime": 96
+    },
+    "storage": {
+        "access_key": "I479N5LV2LSU72WTV0ZX",
+        "secret_key": "K7oOe8Zbw50zZ2gNLK7GhbeVavLaCcmcLfw1t9bU",
+        "region": "germany",
+        "endpoint": "127.0.0.1:9001",
+        "use_ssl": false
+    },
+    "template_folder": "./config/templates"
 }
