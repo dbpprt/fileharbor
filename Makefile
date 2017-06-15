@@ -24,6 +24,5 @@ build: #web
 container:
 	docker build --rm --pull --no-cache -t dennisbappert/fileharbor:$(VERSION) .
 
-#.PHONY: push
-#push:
-#	docker push loadimpact/k6:$(VERSION)
+todo:
+	grep 'TODO' -n -r --exclude-dir=public --exclude-dir=\.git --exclude=Makefile . 2>/dev/null || test true

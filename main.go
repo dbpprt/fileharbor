@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"log"
+	"runtime"
+	"time"
 
 	"github.com/dennisbappert/fileharbor/common"
 	minio "github.com/minio/minio-go"
@@ -55,6 +57,19 @@ func main() {
 	}
 	log.Println("connection to storage established successfully")
 
+	if configuration.DebugMode {
+		log.Println("enable memory stats tracing")
+
+		go func() {
+			for {
+				var m runtime.MemStats
+				runtime.ReadMemStats(&m)
+				log.Printf("alloc = %v - totalalloc = %v - sys = %v - gc = %v - heapalloc = %v\n", m.Alloc/1024, m.TotalAlloc/1024, m.Sys/1024, m.NumGC, m.HeapAlloc/1024)
+				time.Sleep(30 * time.Second)
+			}
+		}()
+	}
+
 	services := services.Initialize(&configuration, db, mc)
 
 	if *webFlag {
@@ -63,5 +78,4 @@ func main() {
 	}
 
 	defer db.Close()
-
 }

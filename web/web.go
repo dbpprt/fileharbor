@@ -29,10 +29,14 @@ func Initialize(configuration *common.Configuration, services *services.Services
 			return uuid.NewV4().String()
 		},
 	}))
+	// TODO: set request id as response header!
 
 	if configuration.DebugMode {
 		log.Println("enabling unrestricted cors for debugging purposes!")
 		e.Use(middleware.CORS())
+
+		log.Println("enabling echo debug mode")
+		e.Debug = true
 	}
 
 	// register our custom context to avoid package global variables
