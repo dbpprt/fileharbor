@@ -3,7 +3,7 @@
     "addr": ":8080",
     "read_timeout": 20,
     "write_timeout": 20,
-    "connection_string": "user=user dbname=fileharbor sslmode=disable",
+    "connection_string": "user=postgres password=postgres dbname=fileharbor sslmode=disable",
     "default_quota": 1000,
     "token": {
         "secret": "dccadd40-0f36-4711-b54b-d59be3fb228a",
