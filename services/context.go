@@ -34,6 +34,7 @@ type ServiceContext struct {
 	StorageService            *StorageService
 	CollectionTemplateService *CollectionTemplateService
 	ColumnService             *ColumnService
+	ContentTypeService        *ContentTypeService
 }
 
 type Service struct {
@@ -63,6 +64,7 @@ func NewServiceContext(configuration *common.Configuration, environment *Service
 	ctx.CollectionTemplateService = NewCollectionTemplateService(configuration, database, ctx)
 	ctx.ColumnService = NewColumnService(configuration, database, ctx)
 	ctx.AuthorizationService = NewAuthorizationService(configuration, database, ctx)
+	ctx.ContentTypeService = NewContentTypeService(configuration, database, ctx)
 
 	if ctx.Environment != nil {
 		ctx.log = log.New(os.Stdout, "("+ctx.Environment.RequestID+") ("+environment.Email+") ", log.LstdFlags|log.Ldate|log.Ltime|log.Lshortfile)

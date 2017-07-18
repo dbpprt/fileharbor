@@ -245,6 +245,8 @@ func (service *CollectionService) InitializeCollection(collectionID string, temp
 		return err
 	}
 
+	// TODO: verify that collection is not initialized yet
+
 	service.log.Println("starting to initialize collection", collection)
 
 	template, err := service.CollectionTemplateService.GetTemplate(templateID)
@@ -257,6 +259,8 @@ func (service *CollectionService) InitializeCollection(collectionID string, temp
 
 	tx := service.database.MustBegin()
 
+	// set name of collection
+
 	if name != nil {
 		service.log.Println("update template name", name)
 		err := service.UpdateName(collectionID, *name, tx)
@@ -268,11 +272,45 @@ func (service *CollectionService) InitializeCollection(collectionID string, temp
 		}
 	}
 
+	// creating columns
+
 	for _, column := range template.Columns {
 		service.log.Println("trying to create column", column)
 
-		service.ColumnService.Create(&column, collectionID)
+		err := service.ColumnService.Create(&column, collectionID, tx)
+
+		if err != nil {
+			service.log.Println("Unexpected error while creating columns - aborting...", err)
+			tx.Rollback()
+			return err
+		}
 	}
+
+	// creating contenttypes
+
+	for _, contentType := range template.ContentTypes {
+		service.log.Println("trying to create contentType", contentType)
+
+		err := service.ContentTypeService.Create(&contentType, collectionID, tx)
+
+		if err != nil {
+			service.log.Println("Unexpected error while creating contentType - aborting...", err)
+			tx.Rollback()
+			return err
+		}
+	}
+
+	// update the collection entity
+
+	_, err = tx.Exec("UPDATE collections SET template_id = $1 WHERE id = $2", templateID, collectionID)
+
+	if err != nil {
+		service.log.Println("Unexpected error while updating the collection - aborting...", err)
+		tx.Rollback()
+		return err
+	}
+
+	// database commit
 
 	service.log.Println("committing collection initialization to database")
 	err = tx.Commit()

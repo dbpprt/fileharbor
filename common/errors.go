@@ -1,13 +1,16 @@
 package common
 
 const (
-	ErrNotFound            = "err-not-found"
-	ErrUserAlreadyExisting = "err-user-already-existing"
-	ErrUnexpected          = "err-unexpected"
-	ErrPasswordTooShort    = "err-password-too-short"
-	ErrLoginFailed         = "err-login-failed"
-	ErrNotAuthenticated    = "err-not-authenticed"
-	ErrNotSupported        = "err-not-supported"
+	ErrNotFound                 = "err-not-found"
+	ErrUserAlreadyExisting      = "err-user-already-existing"
+	ErrUnexpected               = "err-unexpected"
+	ErrPasswordTooShort         = "err-password-too-short"
+	ErrLoginFailed              = "err-login-failed"
+	ErrNotAuthenticated         = "err-not-authenticed"
+	ErrNotSupported             = "err-not-supported"
+	ErrColumnAlreadyExists      = "err-column-already-exists"
+	ErrContentTypeAlreadyExists = "err-contenttype-already-exists"
+	ErrUnknownColumnType        = "err-unknown-column-type"
 )
 
 type ApplicationError struct {

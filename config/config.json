@@ -10,10 +10,10 @@
         "lifetime": 96
     },
     "storage": {
-        "access_key": "I479N5LV2LSU72WTV0ZX",
-        "secret_key": "K7oOe8Zbw50zZ2gNLK7GhbeVavLaCcmcLfw1t9bU",
+        "access_key": "EMSEY93KL6UMMCDCTIV1",
+        "secret_key": "N7QggWZ6oZTfIdqOPCkl/LztLcX9ZoikVEkt6BD3",
         "region": "germany",
-        "endpoint": "127.0.0.1:9001",
+        "endpoint": "127.0.0.1:9000",
         "use_ssl": false
     },
     "template_folder": "./config/templates"

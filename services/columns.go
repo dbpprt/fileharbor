@@ -4,8 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 
-	"errors"
-
 	"strings"
 
 	"github.com/dennisbappert/fileharbor/common"
@@ -66,7 +64,7 @@ func (service *ColumnService) Exists(id string, collectionID string) (bool, erro
 	return true, nil
 }
 
-func (service *ColumnService) Create(column *Column, collectionID string) error {
+func (service *ColumnService) Create(column *Column, collectionID string, tx *sqlx.Tx) error {
 	var err error
 
 	service.log.Println("creating column", column)
@@ -78,7 +76,7 @@ func (service *ColumnService) Create(column *Column, collectionID string) error 
 		return err
 	} else if !exists {
 		service.log.Println("collection is not existing - aborting...", collectionID)
-		return errors.New("collection is not found") // TODO: add application error for this
+		return common.NewApplicationError("Collection is not existing", common.ErrNotFound)
 	}
 
 	// check if the column may already exists
@@ -87,7 +85,7 @@ func (service *ColumnService) Create(column *Column, collectionID string) error 
 		return err
 	} else if exists {
 		service.log.Println("column is existing - aborting...", column.ID)
-		return errors.New("column is already existing") // TODO: add application error for this
+		return common.NewApplicationError("The column is already existing", common.ErrColumnAlreadyExists)
 	}
 
 	switch columnType := strings.ToLower(column.Type); columnType {
@@ -98,13 +96,43 @@ func (service *ColumnService) Create(column *Column, collectionID string) error 
 		err = service.validateAndNormalizeDateTimeColumn(column)
 
 	default:
-		return errors.New("undefined type") // TODO: add application error for this
+		return common.NewApplicationError("Undefined column type", common.ErrUnknownColumnType)
 	}
 
 	if err != nil {
 		service.log.Println("unable to validate column", column)
 		service.log.Println("aborting creation")
 		return err
+	}
+
+	commit := false
+	if tx == nil {
+		tx = service.database.MustBegin()
+		commit = true
+	}
+
+	_, err = tx.Exec("INSERT INTO columns (id, collection_id, name, description, \"group\", type, sealed, settings) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+		column.ID, collectionID, column.Name, column.Description, column.Group, column.Type, column.Sealed, column.Settings)
+
+	if err != nil {
+		service.log.Println("unexpected error creating column", err)
+
+		if commit {
+			tx.Rollback()
+		}
+
+		return err
+	}
+
+	if commit == true {
+		err := tx.Commit()
+
+		if err != nil {
+			service.log.Println("error while executing transaction", err)
+			return err
+		}
+	} else {
+		service.log.Println("transaction passed to function - skipping commit")
 	}
 
 	return nil

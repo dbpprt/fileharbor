@@ -19,11 +19,15 @@ func (service *AuthorizationService) IsAnonymous() bool {
 }
 
 func (service *AuthorizationService) IsSystem() bool {
-	return false
+	return true
 }
 
 func (service *AuthorizationService) IsLoggedInUser() bool {
-	return false
+	return true
+}
+
+func (service *AuthorizationService) IsSuperAdmin() bool {
+	return true
 }
 
 func (service *AuthorizationService) EnsureLoggedInUser() error {

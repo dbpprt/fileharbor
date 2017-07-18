@@ -152,3 +152,38 @@ func CollectionsInitialize(c echo.Context) error {
 
 	return c.NoContent(http.StatusOK)
 }
+
+func CollectionsCreate(c echo.Context) error {
+	ctx := c.(*context.Context)
+
+	var err error
+	if ctx.AuthorizationService.IsSuperAdmin() {
+		service.log.Println("current user is super admin - continue creating collection for custom user")
+
+		type params struct {
+			UserID string `json:"user_id"`
+		}
+
+		param := new(params)
+		if err := c.Bind(param); err != nil {
+			log.Println("unable to bind request body")
+			return c.NoContent(http.StatusBadRequest)
+		}
+
+		impersonatedCtx := 
+		err := ctx.CollectionService.Create(nil)
+	}
+
+	if err != nil {
+		if applicationError, ok := err.(*common.ApplicationError); ok {
+			response := helper.NewErrorResponse(applicationError.Code, applicationError.Error())
+			return c.JSON(http.StatusOK, response)
+		}
+
+		log.Println("unexpected error occurred - sending 500", err)
+		response := helper.NewUnexpectedErrorResponse()
+		return c.JSON(http.StatusInternalServerError, response)
+	}
+
+	return c.NoContent(http.StatusOK)
+}

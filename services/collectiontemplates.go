@@ -18,11 +18,12 @@ type CollectionTemplateService struct {
 }
 
 type CollectionTemplate struct {
-	ID          string
-	Name        string
-	Description string
-	Language    string
-	Columns     []Column
+	ID           string
+	Name         string
+	Description  string
+	Language     string
+	Columns      []Column
+	ContentTypes []ContentType
 }
 
 func NewCollectionTemplateService(configuration *common.Configuration, database *sqlx.DB, services *ServiceContext) *CollectionTemplateService {
@@ -51,6 +52,15 @@ func (service *CollectionTemplateService) GetAvaliableTemplates() (*[]Collection
 		Type        string          `json:"type"`
 		Sealed      bool            `json:"sealed"`
 		Settings    json.RawMessage `json:"settings"`
+	}
+
+	type contentTypeDefinition struct {
+		ID          string  `json:"id"`
+		ParentID    *string `json:"parent_id"`
+		Name        string  `json:"name"`
+		Description string  `json:"description"`
+		Group       string  `json:"group"`
+		Sealed      bool    `json:"sealed"`
 	}
 
 	// the result set
@@ -157,14 +167,55 @@ func (service *CollectionTemplateService) GetAvaliableTemplates() (*[]Collection
 
 						result.Columns = append(result.Columns, *column)
 					}
+				}
 
-					if hasErrors {
-						service.log.Println("there were any errors while parsing the includes - skipping...")
-						continue
+				// parsing content types
+				for _, include := range templateDefinition.IncludeContentTypes {
+					service.log.Println("processing include", include)
+					includePath := path.Join(folder, include)
+					service.log.Println("included file is", includePath)
+
+					file, err := os.Open(includePath)
+					if err != nil {
+						service.log.Println("unable to open file", includePath)
+						hasErrors = true
+						break
 					}
 
-					results = append(results, *result)
+					contentTypeDefinitions := make([]contentTypeDefinition, 0)
+					decoder = json.NewDecoder(file)
+					err = decoder.Decode(&contentTypeDefinitions)
+
+					if err != nil {
+						service.log.Println("unable to parse file - invalid template - skipping...", err)
+						hasErrors = true
+						break
+					}
+
+					service.log.Println("successfully parsed contenttype include", contentTypeDefinitions)
+
+					for _, contentTypeDefinition := range contentTypeDefinitions {
+						service.log.Println("processing contenttype", contentTypeDefinition)
+
+						contentType := &ContentType{
+							ID:          contentTypeDefinition.ID,
+							ParentID:    contentTypeDefinition.ParentID,
+							Name:        contentTypeDefinition.Name,
+							Description: contentTypeDefinition.Description,
+							Group:       contentTypeDefinition.Group,
+							Sealed:      contentTypeDefinition.Sealed,
+						}
+
+						result.ContentTypes = append(result.ContentTypes, *contentType)
+					}
 				}
+
+				if hasErrors {
+					service.log.Println("there were any errors while parsing the includes - skipping...")
+					continue
+				}
+
+				results = append(results, *result)
 			}
 
 			service.log.Println("finished processing file", filePath)
