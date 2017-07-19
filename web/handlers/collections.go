@@ -158,7 +158,7 @@ func CollectionsCreate(c echo.Context) error {
 
 	var err error
 	if ctx.AuthorizationService.IsSuperAdmin() {
-		service.log.Println("current user is super admin - continue creating collection for custom user")
+		log.Println("current user is super admin - continue creating collection for custom user")
 
 		type params struct {
 			UserID string `json:"user_id"`
@@ -170,8 +170,8 @@ func CollectionsCreate(c echo.Context) error {
 			return c.NoContent(http.StatusBadRequest)
 		}
 
-		impersonatedCtx := 
-		err := ctx.CollectionService.Create(nil)
+		//impersonatedCtx :=
+		//err := ctx.CollectionService.Create(nil)
 	}
 
 	if err != nil {
