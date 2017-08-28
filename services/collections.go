@@ -18,8 +18,13 @@ func NewCollectionService(configuration *common.Configuration, database *sqlx.DB
 	return service
 }
 
-func (service *CollectionService) Exists(id string) (bool, error) {
+func (service *CollectionService) Exists(id string, tx *sqlx.Tx) (bool, error) {
 	// TODO: do we need security verification here?
+	commit := false
+	if tx == nil {
+		tx = service.database.MustBegin()
+		commit = true
+	}
 
 	collection := models.CollectionEntity{}
 	service.log.Println("looking up collection", id)
@@ -31,6 +36,17 @@ func (service *CollectionService) Exists(id string) (bool, error) {
 		return false, nil
 	} else if err != nil {
 		return true, err
+	}
+
+	if commit == true {
+		err := tx.Commit()
+
+		if err != nil {
+			service.log.Println("error while executing transaction", err)
+			return false, err
+		}
+	} else {
+		service.log.Println("transaction passed to function - skipping commit")
 	}
 
 	service.log.Println("collection is existing", collection)
@@ -61,6 +77,7 @@ func (service *CollectionService) Create(tx *sqlx.Tx) (string, error) {
 	id := uuid.NewV4().String()
 
 	service.log.Println("creating new collection", id)
+
 	commit := false
 	if tx == nil {
 		tx = service.database.MustBegin()
@@ -181,7 +198,7 @@ func (service *CollectionService) UpdateName(collectionID string, name string, t
 		return err
 	}
 
-	if ok, err := service.Exists(collectionID); err != nil {
+	if ok, err := service.Exists(collectionID, tx); err != nil {
 		service.log.Println("unable to verify wether the collection exists", err)
 		return err
 	} else if ok == false {
@@ -230,7 +247,7 @@ func (service *CollectionService) InitializeCollection(collectionID string, temp
 		return err
 	}
 
-	if ok, err := service.Exists(collectionID); err != nil {
+	if ok, err := service.Exists(collectionID, nil); err != nil {
 		service.log.Println("unable to verify wether the collection exists", err)
 		return err
 	} else if ok == false {
@@ -297,6 +314,18 @@ func (service *CollectionService) InitializeCollection(collectionID string, temp
 			service.log.Println("Unexpected error while creating contentType - aborting...", err)
 			tx.Rollback()
 			return err
+		}
+
+		for _, columnMapping := range contentType.Columns {
+			service.log.Println("trying to add column to contentType", columnMapping.ID)
+
+			err := service.ContentTypeService.AddColumn(collectionID, contentType.ID, columnMapping.ID, columnMapping.Visible, columnMapping.Required, columnMapping.Default, tx)
+
+			if err != nil {
+				service.log.Println("Unexpected error while add column to contentType - aborting...", err)
+				tx.Rollback()
+				return err
+			}
 		}
 	}
 

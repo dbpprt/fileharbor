@@ -71,7 +71,7 @@ func (service *ColumnService) Create(column *Column, collectionID string, tx *sq
 	service.log.Println("in target collection", collectionID)
 
 	// check if the collection exists
-	if exists, err := service.CollectionService.Exists(collectionID); err != nil {
+	if exists, err := service.CollectionService.Exists(collectionID, tx); err != nil {
 		service.log.Println("unable to check if collection exists - aborting...", err)
 		return err
 	} else if !exists {

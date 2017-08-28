@@ -3,17 +3,17 @@
     "addr": ":8080",
     "read_timeout": 20,
     "write_timeout": 20,
-    "connection_string": "user=postgres password=postgres dbname=fileharbor sslmode=disable",
+    "connection_string": "user=fileharbor password=fileharbor dbname=fileharbor sslmode=disable host=192.168.99.10",
     "default_quota": 1000,
     "token": {
         "secret": "dccadd40-0f36-4711-b54b-d59be3fb228a",
         "lifetime": 96
     },
     "storage": {
-        "access_key": "EMSEY93KL6UMMCDCTIV1",
-        "secret_key": "N7QggWZ6oZTfIdqOPCkl/LztLcX9ZoikVEkt6BD3",
+        "access_key": "access_key",
+        "secret_key": "secret_key",
         "region": "germany",
-        "endpoint": "127.0.0.1:9000",
+        "endpoint": "192.168.99.10:10000",
         "use_ssl": false
     },
     "template_folder": "./config/templates"

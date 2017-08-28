@@ -10,6 +10,7 @@ const (
 	ErrNotSupported             = "err-not-supported"
 	ErrColumnAlreadyExists      = "err-column-already-exists"
 	ErrContentTypeAlreadyExists = "err-contenttype-already-exists"
+	ErrContentTypeNotFound      = "err-contenttype-not-found"
 	ErrUnknownColumnType        = "err-unknown-column-type"
 )
 

@@ -27,6 +27,7 @@ var (
 )
 
 func main() {
+	// configure default logging to be a bit more verbose
 	log.SetFlags(log.LstdFlags | log.Ldate | log.Ltime | log.Lshortfile)
 	log.SetPrefix("(" + uuid.Nil.String() + ") (system) ")
 	log.SetOutput(os.Stdout)

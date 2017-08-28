@@ -1,0 +1,27 @@
+{
+  "name": "fileharbor",
+  "version": "0.0.1",
+  "description": "Comming soon...",
+  "main": "main.go",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dennisbappert/fileharbor.git"
+  },
+  "author": "Dennis Bappert",
+  "license": "LGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/dennisbappert/fileharbor/issues"
+  },
+  "homepage": "https://github.com/dennisbappert/fileharbor#readme",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-clean": "^0.3.2",
+    "gulp-exec": "^2.1.3"
+  }
+}

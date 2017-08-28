@@ -54,13 +54,21 @@ func (service *CollectionTemplateService) GetAvaliableTemplates() (*[]Collection
 		Settings    json.RawMessage `json:"settings"`
 	}
 
+	type columnMappingDefinition struct {
+		ID       string `json:"id"`
+		Required bool   `json:"required"`
+		Visible  bool   `json:"visible"`
+		Default  string `json:"default"`
+	}
+
 	type contentTypeDefinition struct {
-		ID          string  `json:"id"`
-		ParentID    *string `json:"parent_id"`
-		Name        string  `json:"name"`
-		Description string  `json:"description"`
-		Group       string  `json:"group"`
-		Sealed      bool    `json:"sealed"`
+		ID          string                    `json:"id"`
+		ParentID    *string                   `json:"parent_id"`
+		Name        string                    `json:"name"`
+		Description string                    `json:"description"`
+		Group       string                    `json:"group"`
+		Sealed      bool                      `json:"sealed"`
+		Columns     []columnMappingDefinition `json:"columns"`
 	}
 
 	// the result set
@@ -206,6 +214,17 @@ func (service *CollectionTemplateService) GetAvaliableTemplates() (*[]Collection
 							Sealed:      contentTypeDefinition.Sealed,
 						}
 
+						for _, columnMappingDefinition := range contentTypeDefinition.Columns {
+							columnMapping := &ColumnMapping{
+								ID:       columnMappingDefinition.ID,
+								Default:  columnMappingDefinition.Default,
+								Visible:  columnMappingDefinition.Visible,
+								Required: columnMappingDefinition.Required,
+							}
+
+							contentType.Columns = append(contentType.Columns, *columnMapping)
+						}
+
 						result.ContentTypes = append(result.ContentTypes, *contentType)
 					}
 				}
@@ -242,6 +261,8 @@ func (service *CollectionTemplateService) GetTemplate(id string) (*CollectionTem
 			return &current, nil
 		}
 	}
+
+	// TODO: Add language -.-
 
 	return nil, common.NewApplicationError("the desired template was not found", common.ErrNotFound)
 }
