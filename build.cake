@@ -3,7 +3,7 @@
 
 #tool GitVersion.CommandLine
 
-var target = Argument("target", "Default");
+var target = Argument("target", "Build");
 var configuration = Argument("configuration", "Release");
 var framework = Argument("framework", "netcoreapp2.0");
 
@@ -11,7 +11,6 @@ FilePath webApiProject = "./src/Fileharbor.csproj";
 DirectoryPath webAppProject = "./ui";
 
 DirectoryPath artifacts = "./dist";
-GitVersion version = GitVersion();
 
 Task("Clean")
 	.Does(() =>
@@ -49,8 +48,7 @@ Task("Build")
     DotNetCorePublish(webApiProject.FullPath, new DotNetCorePublishSettings
     {
         Configuration = configuration,
-        VersionSuffix = version.PreReleaseTag,
-        OutputDirectory = "./dist/",
+        OutputDirectory = "./dist/"
     });
 
     // run npm build to build bundled and minified webapp output
@@ -83,6 +81,8 @@ Task("Run")
         });
     });
     System.Threading.Tasks.Task.WaitAll(webApi, webApp);
-} );
+});
+
+Task("Default").IsDependentOn("Build");
 
 RunTarget(target);
