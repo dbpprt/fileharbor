@@ -4,10 +4,12 @@ namespace Fileharbor.Controllers
 {
     public class HomeController : BaseController
     {
-        [HttpGet, Route(""), ApiExplorerSettings(IgnoreApi = true)]
+        [HttpGet, Route("deprecated"), ApiExplorerSettings(IgnoreApi = true)]
         public IActionResult Index()
         {
             return View();
         }
     }
 }
+
+
