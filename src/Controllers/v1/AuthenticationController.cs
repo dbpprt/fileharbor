@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Threading.Tasks;
+using Fileharbor.Common;
 using Fileharbor.Services.Contracts;
 using Fileharbor.Services.Entities;
 using Fileharbor.ViewModels.v1.Authentication;
@@ -12,11 +13,11 @@ namespace Fileharbor.Controllers.v1
     [Route("api/v1/auth")]
     public class AuthenticationController : BaseController
     {
-        private readonly IAuthenticationService _authenticationService;
+        private readonly IUserService _userService;
 
-        public AuthenticationController(IAuthenticationService authenticationService)
+        public AuthenticationController(IUserService userService, CurrentPrincipal principal) : base(principal)
         {
-            _authenticationService = authenticationService;
+            _userService = userService;
         }
 
         [HttpPost, Route("token"), AllowAnonymous]
@@ -24,14 +25,14 @@ namespace Fileharbor.Controllers.v1
         {
             return Json(new
             {
-                token = await _authenticationService.AcquireTokenAsync(model.MailAddress, model.Password, null)
+                token = await _userService.AcquireTokenAsync(model.MailAddress, model.Password, null)
             });
         }
 
         [HttpPost, Route("register"), AllowAnonymous]
         public async Task<IActionResult> Register([FromBody]RegistrationRequest model)
         {
-            (var id, var validated) = await _authenticationService.RegisterAsync(new UserEntity
+            (var id, var validated) = await _userService.RegisterAsync(new UserEntity
             {
                 MailAddress = model.MailAddress,
                 GivenName = model.GivenName,

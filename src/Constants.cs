@@ -10,5 +10,14 @@
 
             public const string Authentication = "Authentication";
         }
+
+        public static class Paths
+        {
+            public const string SchemaDirectory = "schema";
+
+            public const string TemplatesDirectory = "templates";
+
+            public const string TemplateNameFormatString = "template.{0}.json";
+        }
     }
 }

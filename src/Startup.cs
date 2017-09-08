@@ -2,6 +2,7 @@
 using System.Data;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using Fileharbor.Common;
 using Fileharbor.Common.Configuration;
 using Fileharbor.Common.Database;
 using Fileharbor.Common.Utilities;
@@ -54,8 +55,14 @@ namespace Fileharbor
             // register the database context
             services.AddScoped<IDbConnection>(_ => new NpgsqlConnection(_configuration["Database:ConnectionString"]));
 
+            // this is the default principal populated by the CurrentPrincipalMiddleware
+            services.AddScoped<CurrentPrincipal>();
+
             // register all the services
-            services.AddScoped<IAuthenticationService, AuthenticationService>();
+            services.AddScoped<IUserService, UserService>()
+                .AddScoped<ICollectionService, CollectionService>()
+                .AddScoped<ICollectionTemplateService, CollectionTemplateService>()
+                .AddScoped<IPermissionService, PermissionService>();
 
             // add mvc
             services.AddMvc();

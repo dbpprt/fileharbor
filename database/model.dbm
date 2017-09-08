@@ -31,10 +31,13 @@ CAUTION: Do not modify this file unless you know what you are doing.
 		<type name="bool" length="0"/>
 	</column>
 	<column name="password_hash" not-null="true">
-		<type name="bytea" length="0"/>
+		<type name="text" length="0"/>
 	</column>
 	<column name="validated" not-null="true" default-value="false">
 		<type name="bool" length="0"/>
+	</column>
+	<column name="last_login">
+		<type name="timestamptz" length="0"/>
 	</column>
 	<constraint name="users_pk" type="pk-constr" table="public.users">
 		<columns names="id" ref-type="src-columns"/>
@@ -253,9 +256,9 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	 dst-table="public.contenttypes"
 	 src-required="false" dst-required="false">
 	<line>
-		<position x="1073.37" y="776"/>
-	<position x="1073.37" y="691"/>
-	<position x="976.248" y="691"/>
+		<position x="1095.6" y="788.8"/>
+	<position x="1095.6" y="691"/>
+	<position x="991.069" y="691"/>
 	</line>
 </relationship>
 

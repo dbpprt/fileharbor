@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1>ABOUT - hello vue :)</h1>
+    <h1>ABOUT - hello pianu :)</h1>
   </div>
 </template>
 

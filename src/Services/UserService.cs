@@ -19,13 +19,13 @@ using Microsoft.IdentityModel.Tokens;
 namespace Fileharbor.Services
 {
     [UsedImplicitly]
-    public class AuthenticationService : ServiceBase, IAuthenticationService
+    public class UserService : ServiceBase, IUserService
     {
         private readonly IOptions<AuthenticationConfiguration> _authenticationConfiguration;
-        private readonly ILogger<AuthenticationService> _logger;
+        private readonly ILogger<UserService> _logger;
         private readonly SigningCredentials _signingCredentials;
 
-        public AuthenticationService(IOptions<AuthenticationConfiguration> authenticationConfiguration, ILogger<AuthenticationService> logger, IDbConnection database, SigningCredentials signingCredentials)
+        public UserService(IOptions<AuthenticationConfiguration> authenticationConfiguration, ILogger<UserService> logger, IDbConnection database, SigningCredentials signingCredentials)
             : base(database)
         {
             _authenticationConfiguration = authenticationConfiguration;
@@ -125,6 +125,7 @@ namespace Fileharbor.Services
 
             var claims = new[]
             {
+                new Claim(JwtRegisteredClaimNames.Sid, user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Iss, _authenticationConfiguration.Value.Issuer),
                 new Claim(JwtRegisteredClaimNames.Sub, mailAddress),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),

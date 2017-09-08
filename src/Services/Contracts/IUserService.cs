@@ -7,7 +7,7 @@ using Fileharbor.Services.Entities;
 
 namespace Fileharbor.Services.Contracts
 {
-    public interface IAuthenticationService
+    public interface IUserService
     {
         Task<string> AcquireTokenAsync(string mailAddress, string password, Transaction transaction);
         Task<(Guid?, bool)> RegisterAsync(UserEntity entity, string password, Transaction transaction);

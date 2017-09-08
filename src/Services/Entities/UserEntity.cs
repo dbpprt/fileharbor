@@ -5,7 +5,7 @@ using Fileharbor.Common.Database;
 
 namespace Fileharbor.Services.Entities
 {
-    [Table("Users")]
+    [Table("users")]
     public class UserEntity
     {
         [Key, ColumnName("id")]
