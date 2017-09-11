@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using System;
+using System.Data;
 using System.Data.Common;
 using System.Threading.Tasks;
 using Npgsql;
@@ -44,6 +45,21 @@ namespace Fileharbor.Common.Database
         public static implicit operator DbTransaction(Transaction transaction)
         {
             return transaction?.InnerTransaction;
+        }
+
+        public async Task<T> ExecuteAsync<T>(Func<Task<T>> action)
+        {
+            try
+            {
+                var result = await action();
+                await CommitAsync();
+                return result;
+            }
+            catch (Exception)
+            {
+                await RollbackAsync();
+                throw;
+            }
         }
     }
 }

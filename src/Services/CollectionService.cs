@@ -22,12 +22,16 @@ namespace Fileharbor.Services
     public class CollectionService : ServiceBase, ICollectionService
     {
         private readonly ILogger<CollectionService> _logger;
+        private readonly ICollectionTemplateService _collectionTemplateService;
+        private readonly IColumnService _columnService;
         private readonly CurrentPrincipal _currentPrincipal;
 
-        public CollectionService(ILogger<CollectionService> logger, CurrentPrincipal currentPrincipal, IDbConnection database)
+        public CollectionService(ILogger<CollectionService> logger, ICollectionTemplateService collectionTemplateService, IColumnService columnService, CurrentPrincipal currentPrincipal, IDbConnection database)
             : base(database)
         {
             _logger = logger;
+            _collectionTemplateService = collectionTemplateService;
+            _columnService = columnService;
             _currentPrincipal = currentPrincipal;
         }
 
@@ -98,9 +102,33 @@ namespace Fileharbor.Services
             }
         }
 
-        public async Task InitializeCollectionAsync(Guid collectionId, Guid templateId)
+        public async Task InitializeCollectionAsync(Guid collectionId, Guid templateId, Transaction transaction)
         {
-            throw new NotImplementedException();
+            var database = await GetDatabaseConnectionAsync();
+            transaction = transaction.Spawn(database);
+
+            try
+            {
+                _logger.LogDebug(LoggingEvents.InsertItem, "Starting collection initialization for collection {0} with template id {1}", collectionId, templateId);
+                var template = await _collectionTemplateService.GetTemplateByIdAsync(templateId);
+
+                // TODO: Check if collection is already initialized
+
+                foreach (var column in template.Columns)
+                {
+                    await _columnService.CreateColumnAsync(collectionId, column, transaction);
+                }
+
+                await transaction.CommitAsync();
+
+                _logger.LogDebug(LoggingEvents.InsertItem, "Finished collection initialization for collection {0} with template id {1}", collectionId, templateId);
+            }
+            catch (Exception e)
+            {
+                _logger.LogWarning(LoggingEvents.InsertItem, e, "Unable to initialize collection - unexpected exception");
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
     }
 }

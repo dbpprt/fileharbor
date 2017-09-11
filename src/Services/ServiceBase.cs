@@ -8,7 +8,6 @@ namespace Fileharbor.Services
     public abstract class ServiceBase
     {
         private readonly IDbConnection _connection;
-        private bool _opened;
 
         protected ServiceBase(IDbConnection connection)
         {
@@ -17,7 +16,7 @@ namespace Fileharbor.Services
 
         protected async Task<IDbConnection> GetDatabaseConnectionAsync()
         {
-            if (_opened)
+            if (_connection.State == ConnectionState.Open)
             {
                 return _connection;
             }
@@ -30,8 +29,7 @@ namespace Fileharbor.Services
             {
                 _connection.Open();
             }
-
-            _opened = true;
+            
             return _connection;
         }
     }

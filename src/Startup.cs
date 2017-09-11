@@ -62,7 +62,9 @@ namespace Fileharbor
             services.AddScoped<IUserService, UserService>()
                 .AddScoped<ICollectionService, CollectionService>()
                 .AddScoped<ICollectionTemplateService, CollectionTemplateService>()
-                .AddScoped<IPermissionService, PermissionService>();
+                .AddScoped<IPermissionService, PermissionService>()
+                .AddScoped<IColumnService, ColumnService>()
+                .AddScoped<IContentTypeService, ContentTypeService>();
 
             // add mvc
             services.AddMvc();
@@ -147,6 +149,7 @@ namespace Fileharbor
             services.Configure<DatabaseConfiguration>(configuration.GetSection(Constants.ConfigurationSections.Database));
             services.Configure<SwaggerConfiguration>(configuration.GetSection(Constants.ConfigurationSections.Swagger));
             services.Configure<AuthenticationConfiguration>(configuration.GetSection(Constants.ConfigurationSections.Authentication));
+            services.Configure<LanguageConfiguration>(configuration.GetSection(Constants.ConfigurationSections.Language));
         }
     }
 }

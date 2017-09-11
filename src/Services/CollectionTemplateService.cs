@@ -59,15 +59,28 @@ namespace Fileharbor.Services
             return results;
         }
 
+        public async Task<Template> GetTemplateByIdAsync(Guid templateId)
+        {
+            var templates = await GetAvailableTemplatesAsync();
+            // TODO: Throw exception if no tempate found!
+            return templates.FirstOrDefault(_ => _.Id == templateId);
+        }
+
+        public async Task<IEnumerable<Template>> GetTemplatesByLanguageAsync(int language)
+        {
+            var templates = await GetAvailableTemplatesAsync();
+            // TODO: Throw exception if no tempate found!
+            return templates.Where(_ => _.Language.LCID == language);
+        }
+
         // TODO: Implement caching for the templates!
-        public async Task<IEnumerable<Template>> GetAvailableTemplates(int language)
+        public async Task<IEnumerable<Template>> GetAvailableTemplatesAsync()
         {
             var contentRoot = _hostingEnvironment.ContentRootPath;
-            var cultureInfo = new CultureInfo(language);
             var templatesDirectory = Path.Combine(contentRoot, Constants.Paths.SchemaDirectory,
                 Constants.Paths.TemplatesDirectory);
 
-            _logger.LogDebug("Searching for templates with language {0} in directory {1}", cultureInfo.Name, templatesDirectory);
+            _logger.LogDebug("Searching for templates in directory {0}", templatesDirectory);
 
             var templateFolders = Directory.EnumerateDirectories(templatesDirectory);
             var results = new List<Template>();
@@ -75,19 +88,31 @@ namespace Fileharbor.Services
             foreach (var templateFolder in templateFolders)
             {
                 _logger.LogDebug("Processing template folder {0}", templateFolder);
-                var templateFileName = string.Format(Constants.Paths.TemplateNameFormatString, cultureInfo.Name);
                 var templateFile = Directory.EnumerateFiles(templateFolder).FirstOrDefault(_ =>
-                    string.Equals(Path.GetFileName(_), templateFileName, StringComparison.InvariantCultureIgnoreCase));
+                    Path.GetFileName(_).StartsWith("template.", StringComparison.InvariantCultureIgnoreCase));
 
                 if (templateFile == null)
                 {
-                    _logger.LogDebug("No matching template file found! Desired filename {0}", templateFileName);
+                    _logger.LogDebug("No matching template file found in folder {0}", templateFolder);
                 }
 
                 try
                 {
                     var content = await File.ReadAllTextAsync(templateFile);
                     var result = JsonConvert.DeserializeObject<Template>(content);
+
+                    var languageIdentifier = Path.GetFileNameWithoutExtension(templateFile).Split('.').LastOrDefault();
+
+                    try
+                    {
+                        var culture = new CultureInfo(languageIdentifier);
+                        result.Language = culture;
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogWarning(e, "Unable to parse language for filename {0}", templateFile);
+                        continue;
+                    }
 
                     result.Columns = await GetIncludesForTemplate<Column>(result, result.ColumnIncludes, templateFolder);
                     result.ContentTypes =

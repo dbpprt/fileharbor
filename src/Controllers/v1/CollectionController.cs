@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Fileharbor.Common;
 using Fileharbor.Services.Contracts;
@@ -28,12 +29,19 @@ namespace Fileharbor.Controllers.v1
         [HttpGet, Route("templates/{language}")]
         public async Task<IActionResult> GetTemplates(int language)
         {
-            return Ok((await _collectionTemplateService.GetAvailableTemplates(language)).Select(_ => new CollectionTemplateResponse
+            return Ok((await _collectionTemplateService.GetTemplatesByLanguageAsync(language)).Select(_ => new CollectionTemplateResponse
             {
                 Id = _.Id,
                 Name = _.Name,
                 Description = _.Description
             }));
+        }
+
+        [HttpPatch, Route("initialize/{collectionId}/{templateId}")]
+        public async Task<IActionResult> GetTemplates(Guid collectionId, Guid templateId)
+        {
+            await _collectionService.InitializeCollectionAsync(collectionId, templateId, null);
+            return NoContent();
         }
     }
 }

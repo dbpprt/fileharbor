@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using Newtonsoft.Json;
 
 namespace Fileharbor.Services.Schema
@@ -26,5 +27,8 @@ namespace Fileharbor.Services.Schema
 
         [JsonIgnore]
         public IEnumerable<ContentType> ContentTypes { get; set; }
+
+        [JsonIgnore]
+        public CultureInfo Language { get; set; }
     }
 }

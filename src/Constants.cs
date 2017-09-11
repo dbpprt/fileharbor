@@ -9,6 +9,8 @@
             public const string Database = "Database";
 
             public const string Authentication = "Authentication";
+
+            public const string Language = "Language";
         }
 
         public static class Paths

@@ -1,5 +1,8 @@
-﻿namespace Fileharbor.Common.Configuration
+﻿using JetBrains.Annotations;
+
+namespace Fileharbor.Common.Configuration
 {
+    [UsedImplicitly]
     public class SwaggerConfiguration
     {
         public string Title { get; set; }
