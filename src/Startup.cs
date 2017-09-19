@@ -66,7 +66,8 @@ namespace Fileharbor
                 .AddScoped<ICollectionTemplateService, CollectionTemplateService>()
                 .AddScoped<IPermissionService, PermissionService>()
                 .AddScoped<IColumnService, ColumnService>()
-                .AddScoped<IContentTypeService, ContentTypeService>();
+                .AddScoped<IContentTypeService, ContentTypeService>()
+                .AddScoped<ILibraryService, LibraryService>();
 
             // add mvc
             services.AddMvc();

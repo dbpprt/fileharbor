@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.0" author="Dennis Bappert" last-position="1062,0" last-zoom="1"
+<dbmodel pgmodeler-ver="0.9.0" author="Dennis Bappert" last-position="228,16" last-zoom="1"
 	 default-schema="public" default-owner="postgres">
 <database name="fileharbor">
 </database>
@@ -179,6 +179,27 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	</constraint>
 </table>
 
+<table name="libraries">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="1640" y="360"/>
+	<column name="id" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="collection_id" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="name" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<column name="description">
+		<type name="text" length="0"/>
+	</column>
+	<constraint name="libraries_pk" type="pk-constr" table="public.libraries">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
 <constraint name="users_fk" type="fk-constr" comparison-type="MATCH FULL"
 	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.users" table="public.user_collection_mappings">
 	<columns names="user_id" ref-type="src-columns"/>
@@ -221,6 +242,12 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<columns names="id,collection_id" ref-type="dst-columns"/>
 </constraint>
 
+<constraint name="collections_fk" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.collections" table="public.libraries">
+	<columns names="collection_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
 <relationship name="rel_user_collection_mappings_users" type="relfk"
 	 src-table="public.user_collection_mappings"
 	 dst-table="public.users"
@@ -261,5 +288,10 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<position x="977.61" y="889"/>
 	</line>
 </relationship>
+
+<relationship name="rel_libraries_collections" type="relfk"
+	 src-table="public.libraries"
+	 dst-table="public.collections"
+	 src-required="false" dst-required="false"/>
 
 </dbmodel>
