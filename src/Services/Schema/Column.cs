@@ -15,8 +15,8 @@ namespace Fileharbor.Services.Schema
         [JsonProperty("description")]
         public string Description { get; set; }
 
-        [JsonProperty("group")]
-        public string Goup { get; set; }
+        [JsonProperty("group_name")]
+        public string GroupName { get; set; }
 
         [JsonProperty("type")]
         public string Type { get; set; }

@@ -3,22 +3,28 @@ using System.Runtime.Serialization;
 
 namespace Fileharbor.Exceptions
 {
-    public abstract class ApplicationException : Exception
+    public abstract class FileharborException : Exception
     {
-        protected ApplicationException()
+        public int StatusCode { get; }
+
+        protected FileharborException(int statusCode)
         {
+            StatusCode = statusCode;
         }
 
-        protected ApplicationException(string message) : base(message)
+        protected FileharborException(int statusCode, string message) : base(message)
         {
+            StatusCode = statusCode;
         }
 
-        protected ApplicationException(string message, Exception innerException) : base(message, innerException)
+        protected FileharborException(int statusCode, string message, Exception innerException) : base(message, innerException)
         {
+            StatusCode = statusCode;
         }
 
-        protected ApplicationException(SerializationInfo info, StreamingContext context) : base(info, context)
+        protected FileharborException(int statusCode, SerializationInfo info, StreamingContext context) : base(info, context)
         {
+            StatusCode = statusCode;
         }
     }
 }

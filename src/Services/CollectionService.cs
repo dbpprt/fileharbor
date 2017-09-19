@@ -1,20 +1,14 @@
 ﻿using System;
 using System.Data;
 using System.Data.Common;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using Dapper;
 using Fileharbor.Common;
-using Fileharbor.Common.Configuration;
 using Fileharbor.Common.Database;
-using Fileharbor.Common.Utilities;
 using Fileharbor.Services.Contracts;
 using Fileharbor.Services.Entities;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Fileharbor.Services
 {
@@ -22,16 +16,20 @@ namespace Fileharbor.Services
     public class CollectionService : ServiceBase, ICollectionService
     {
         private readonly ILogger<CollectionService> _logger;
+        private readonly IPermissionService _permissionService;
         private readonly ICollectionTemplateService _collectionTemplateService;
         private readonly IColumnService _columnService;
+        private readonly IContentTypeService _contentTypeService;
         private readonly CurrentPrincipal _currentPrincipal;
 
-        public CollectionService(ILogger<CollectionService> logger, ICollectionTemplateService collectionTemplateService, IColumnService columnService, CurrentPrincipal currentPrincipal, IDbConnection database)
+        public CollectionService(ILogger<CollectionService> logger, IPermissionService permissionService, ICollectionTemplateService collectionTemplateService, IColumnService columnService, IContentTypeService contentTypeService, CurrentPrincipal currentPrincipal, IDbConnection database)
             : base(database)
         {
             _logger = logger;
+            _permissionService = permissionService;
             _collectionTemplateService = collectionTemplateService;
             _columnService = columnService;
+            _contentTypeService = contentTypeService;
             _currentPrincipal = currentPrincipal;
         }
 
@@ -42,12 +40,14 @@ namespace Fileharbor.Services
 
             if (!await HasCollectionMappingAsync(userId, collectionId, transaction))
             {
+                await _permissionService.EnsureCollectionPermission(collectionId, PermissionLevel.Owner, transaction);
+
                 try
                 {
                     await database.ExecuteAsync(
                         "insert into user_collection_mappings (user_id, collection_id, is_default) values(@UserId, @CollectionId, @IsDefault)",
-                        new {UserId = userId, CollectionId = collectionId, IsDefault = isDefault },
-                        (DbTransaction) transaction);
+                        new { UserId = userId, CollectionId = collectionId, IsDefault = isDefault },
+                        (DbTransaction)transaction);
                     await transaction.CommitAsync();
                 }
                 catch (Exception e)
@@ -64,19 +64,56 @@ namespace Fileharbor.Services
             var database = await GetDatabaseConnectionAsync();
             transaction = transaction.Spawn(database);
 
-            var entity = await database.QueryFirstOrDefaultAsync<UserCollectionMappingEntity>(
-                "select from user_collection_mappings where user_id = @UserId and collection_id = @CollectionId",
-                new {UserId = userId, CollectionId = collectionId},
-                (DbTransaction) transaction);
+            return await transaction.ExecuteAsync(async () =>
+            {
+                var entity = await database.QueryFirstOrDefaultAsync<UserCollectionMappingEntity>(
+                    "select from user_collection_mappings where user_id = @UserId and collection_id = @CollectionId",
+                    new {UserId = userId, CollectionId = collectionId},
+                    (DbTransaction) transaction);
 
-            return entity != null;
+                return entity != null;
+            });
+        }
+
+        public async Task<bool> IsCollectionInitializedAsync(Guid collectionId, Transaction transaction)
+        {
+            var database = await GetDatabaseConnectionAsync();
+            transaction = transaction.Spawn(database);
+
+            return await transaction.ExecuteAsync(async () =>
+            {
+                await _permissionService.EnsureCollectionPermission(collectionId, PermissionLevel.Member, transaction);
+
+                var entity = await database.QueryFirstOrDefaultAsync<Guid?>(
+                    "select template_id from collections where id = @id",
+                    new { id = collectionId },
+                    (DbTransaction)transaction);
+                
+                return entity.HasValue;
+            });
+        }
+
+        public async Task SetTemplateIdForCollectionAsync(Guid collectionId, Guid templateId, Transaction transaction)
+        {
+            var database = await GetDatabaseConnectionAsync();
+            transaction = transaction.Spawn(database);
+
+            await _permissionService.EnsureCollectionPermission(collectionId, PermissionLevel.Owner, transaction);
+
+            await transaction.ExecuteAsync<Task>(async () =>
+            {
+                await database.ExecuteAsync(
+                    "update collections set template_id = @template_id where id = @id",
+                    new { id = collectionId, template_id = templateId },
+                    (DbTransaction)transaction);
+            });
         }
 
         public async Task<Guid> CreateCollectionAsync(string collectionName, string description, bool isDefault, Transaction transaction)
         {
             var database = await GetDatabaseConnectionAsync();
             transaction = transaction.Spawn(database);
-            
+
             try
             {
                 var id = Guid.NewGuid();
@@ -85,8 +122,8 @@ namespace Fileharbor.Services
 
                 await database.ExecuteAsync(
                     "insert into collections (id, name, quota, description) values(@Id, @Name, @Quota, @Description)",
-                    new {Id = id, Name = collectionName, Quota = quota, Description = description},
-                    (DbTransaction) transaction);
+                    new { Id = id, Name = collectionName, Quota = quota, Description = description },
+                    (DbTransaction)transaction);
                 await AssignCollectionMappingAsync(_currentPrincipal.Id, id, isDefault, transaction);
                 await transaction.CommitAsync();
 
@@ -107,18 +144,30 @@ namespace Fileharbor.Services
             var database = await GetDatabaseConnectionAsync();
             transaction = transaction.Spawn(database);
 
+            await _permissionService.EnsureCollectionPermission(collectionId, PermissionLevel.Owner, transaction);
+
             try
             {
                 _logger.LogDebug(LoggingEvents.InsertItem, "Starting collection initialization for collection {0} with template id {1}", collectionId, templateId);
                 var template = await _collectionTemplateService.GetTemplateByIdAsync(templateId);
 
-                // TODO: Check if collection is already initialized
+                if (await IsCollectionInitializedAsync(collectionId, transaction))
+                {
+                    _logger.LogWarning(LoggingEvents.InsertItem, "Collection is already initialized - aborting!");
+                    throw new CollectionAlreadyInitializedException(collectionId, templateId);
+                }
 
                 foreach (var column in template.Columns)
                 {
                     await _columnService.CreateColumnAsync(collectionId, column, transaction);
                 }
 
+                foreach (var contentType in template.ContentTypes)
+                {
+                    await _contentTypeService.CreateContentTypeAsync(collectionId, contentType, transaction);
+                }
+
+                await SetTemplateIdForCollectionAsync(collectionId, templateId, transaction);
                 await transaction.CommitAsync();
 
                 _logger.LogDebug(LoggingEvents.InsertItem, "Finished collection initialization for collection {0} with template id {1}", collectionId, templateId);

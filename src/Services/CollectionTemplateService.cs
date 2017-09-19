@@ -1,26 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
 using System.Globalization;
-using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
-using Dapper;
-using Fileharbor.Common;
-using Fileharbor.Common.Configuration;
-using Fileharbor.Common.Database;
-using Fileharbor.Common.Utilities;
 using Fileharbor.Services.Contracts;
-using Fileharbor.Services.Entities;
 using Fileharbor.Services.Schema;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 
 namespace Fileharbor.Services

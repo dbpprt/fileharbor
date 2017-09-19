@@ -61,5 +61,19 @@ namespace Fileharbor.Common.Database
                 throw;
             }
         }
+
+        public async Task ExecuteAsync<T>(Func<Task> action)
+        {
+            try
+            {
+                await action();
+                await CommitAsync();
+            }
+            catch (Exception)
+            {
+                await RollbackAsync();
+                throw;
+            }
+        }
     }
 }

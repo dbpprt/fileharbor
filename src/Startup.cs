@@ -6,6 +6,7 @@ using Fileharbor.Common;
 using Fileharbor.Common.Configuration;
 using Fileharbor.Common.Database;
 using Fileharbor.Common.Utilities;
+using Fileharbor.Middlewares;
 using Fileharbor.Services;
 using Fileharbor.Services.Contracts;
 using Fileharbor.Services.Entities;
@@ -41,11 +42,11 @@ namespace Fileharbor
             _signingCredentials = new SigningCredentials(
                 new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_authenticationConfiguration.Value.SigningCredentials)),
                 SecurityAlgorithms.HmacSha256);
-            
+
             // dapper needs to be configured to use a custom mapper for all columns
             Dapper.SqlMapper.SetTypeMap(typeof(UserEntity), new ColumnNameAttributeTypeMapper<UserEntity>());
         }
-        
+
         [UsedImplicitly]
         public void ConfigureServices(IServiceCollection services)
         {
@@ -79,7 +80,7 @@ namespace Fileharbor
                     In = "header",
                     Type = "apiKey"
                 });
-                
+
                 // TODO: Add this to the configuration
                 options.SwaggerDoc("v1", new Info { Title = _configuration["Swagger:Title"], Version = "v1" });
             });
@@ -95,7 +96,7 @@ namespace Fileharbor
             }).AddJwtBearer(options =>
             {
                 options.Audience = _authenticationConfiguration.Value.Audience;
-    
+
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     IssuerSigningKey = _signingCredentials.Key,
@@ -113,8 +114,8 @@ namespace Fileharbor
 
                         // TODO: This seems to be broken!
                         // TODO: Implement logging
-                        return c.Response.WriteAsync(_environment.IsDevelopment() 
-                            ? c.Exception.ToString() 
+                        return c.Response.WriteAsync(_environment.IsDevelopment()
+                            ? c.Exception.ToString()
                             : "An error occurred processing your authentication.");
                     }
                 };
@@ -134,10 +135,11 @@ namespace Fileharbor
             app.UseSwaggerUI(c =>
             {
                 c.ShowJsonEditor();
-             // TODO: add constants for config strings
+                // TODO: add constants for config strings
                 c.SwaggerEndpoint(_configuration["Swagger:SwaggerGenEndpoint"], _configuration["Swagger:Title"]);
             });
 
+            app.UseMiddleware<ExceptionHandlerMiddleware>();
             app.UseMvc();
         }
 

@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.0-beta2" author="Dennis Bappert" last-position="0,0" last-zoom="1"
+<dbmodel pgmodeler-ver="0.9.0" author="Dennis Bappert" last-position="1062,0" last-zoom="1"
 	 default-schema="public" default-owner="postgres">
 <database name="fileharbor">
 </database>
@@ -74,7 +74,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="user_collection_mappings">
 	<schema name="public"/>
 	<role name="postgres"/>
-	<position x="800" y="260"/>
+	<position x="960" y="220"/>
 	<column name="user_id" not-null="true">
 		<type name="uuid" length="0"/>
 	</column>
@@ -92,7 +92,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="columns">
 	<schema name="public"/>
 	<role name="postgres"/>
-	<position x="800" y="460"/>
+	<position x="840" y="500"/>
 	<column name="id" not-null="true">
 		<type name="uuid" length="0"/>
 	</column>
@@ -105,7 +105,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<column name="description">
 		<type name="text" length="0"/>
 	</column>
-	<column name="group" not-null="true">
+	<column name="group_name" not-null="true">
 		<type name="text" length="0"/>
 	</column>
 	<column name="type" not-null="true">
@@ -125,7 +125,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="contenttypes">
 	<schema name="public"/>
 	<role name="postgres"/>
-	<position x="800" y="700"/>
+	<position x="780" y="900"/>
 	<column name="id" not-null="true">
 		<type name="uuid" length="0"/>
 	</column>
@@ -141,7 +141,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<column name="description">
 		<type name="text" length="0"/>
 	</column>
-	<column name="group" not-null="true">
+	<column name="group_name" not-null="true">
 		<type name="text" length="0"/>
 	</column>
 	<column name="sealed" not-null="true">
@@ -155,7 +155,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="contenttype_column_mappings">
 	<schema name="public"/>
 	<role name="postgres"/>
-	<position x="1120" y="520"/>
+	<position x="1640" y="560"/>
 	<column name="contenttype_id" not-null="true">
 		<type name="uuid" length="0"/>
 	</column>
@@ -171,7 +171,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<column name="visible" default-value="true">
 		<type name="bool" length="0"/>
 	</column>
-	<column name="default">
+	<column name="default_value">
 		<type name="text" length="0"/>
 	</column>
 	<constraint name="contenttype_column_mappings_pk" type="pk-constr" table="public.contenttype_column_mappings">
@@ -205,7 +205,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 
 <constraint name="parent_fk" type="fk-constr" comparison-type="MATCH SIMPLE"
 	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.contenttypes" table="public.contenttypes">
-	<columns names="collection_id,parent_id" ref-type="src-columns"/>
+	<columns names="parent_id,collection_id" ref-type="src-columns"/>
 	<columns names="id,collection_id" ref-type="dst-columns"/>
 </constraint>
 
@@ -256,9 +256,9 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	 dst-table="public.contenttypes"
 	 src-required="false" dst-required="false">
 	<line>
-		<position x="1095.6" y="788.8"/>
-	<position x="1095.6" y="691"/>
-	<position x="991.069" y="691"/>
+		<position x="1087.42" y="990.4"/>
+	<position x="1087.42" y="889"/>
+	<position x="977.61" y="889"/>
 	</line>
 </relationship>
 

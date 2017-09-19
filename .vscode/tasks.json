@@ -6,6 +6,9 @@
         {
             "taskName": "build",
             "command": "dotnet build",
+            "args": [
+                "./src/Fileharbor.csproj"
+            ],
             "type": "shell",
             "group": "build",
             "presentation": {

@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Fileharbor.Common;
 using Fileharbor.Services.Contracts;
+using Fileharbor.ViewModels.v1;
 using Fileharbor.ViewModels.v1.Collections;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Fileharbor.Controllers.v1
 {
@@ -38,7 +41,9 @@ namespace Fileharbor.Controllers.v1
         }
 
         [HttpPatch, Route("initialize/{collectionId}/{templateId}")]
-        public async Task<IActionResult> GetTemplates(Guid collectionId, Guid templateId)
+        [SwaggerResponse((int)HttpStatusCode.NoContent, typeof(void))]
+        [SwaggerResponse((int)HttpStatusCode.InternalServerError, typeof(ExceptionResponse))]
+        public async Task<IActionResult> Initialize(Guid collectionId, Guid templateId)
         {
             await _collectionService.InitializeCollectionAsync(collectionId, templateId, null);
             return NoContent();

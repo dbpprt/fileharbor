@@ -3,7 +3,7 @@
     "parent_id": null,
     "name": "Generic item",
     "description": "",
-    "group": "Base types",
+    "group_name": "Base types",
     "sealed": true,
     "columns": [
         {
