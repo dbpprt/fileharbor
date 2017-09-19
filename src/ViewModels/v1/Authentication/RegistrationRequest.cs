@@ -1,11 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System;
 
 namespace Fileharbor.ViewModels.v1.Authentication
 {
     public class RegistrationRequest
     {
-        [Required, EmailAddress]
+        [Required]
+        [EmailAddress]
         public string MailAddress { get; set; }
 
         [Required]

@@ -6,7 +6,9 @@ namespace Fileharbor.Services.Contracts
 {
     public interface ICollectionService
     {
-        Task<Guid> CreateCollectionAsync(string collectionName, string description, bool isDefault, Transaction transaction);
+        Task<Guid> CreateCollectionAsync(string collectionName, string description, bool isDefault,
+            Transaction transaction);
+
         Task InitializeCollectionAsync(Guid collectionId, Guid templateId, Transaction transaction);
     }
 }

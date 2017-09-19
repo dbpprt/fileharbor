@@ -8,6 +8,8 @@ namespace Fileharbor.Services.Contracts
     public interface IPermissionService
     {
         Task<PermissionLevel> GetPermissionForCollection(Guid collectionId, Guid userId, Transaction transaction);
-        Task EnsureCollectionPermission(Guid collectionId, PermissionLevel requestedPermissionLevel, Transaction transaction);
+
+        Task EnsureCollectionPermission(Guid collectionId, PermissionLevel requestedPermissionLevel,
+            Transaction transaction);
     }
 }

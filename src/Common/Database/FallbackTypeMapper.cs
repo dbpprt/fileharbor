@@ -17,76 +17,60 @@ namespace Fileharbor.Common.Database
         public ConstructorInfo FindConstructor(string[] names, Type[] types)
         {
             foreach (var mapper in _mappers)
-            {
                 try
                 {
                     var result = mapper.FindConstructor(names, types);
                     if (result != null)
-                    {
                         return result;
-                    }
                 }
                 catch (NotImplementedException)
                 {
                 }
-            }
             return null;
         }
 
         public ConstructorInfo FindExplicitConstructor()
         {
             foreach (var mapper in _mappers)
-            {
                 try
                 {
                     var result = mapper.FindExplicitConstructor();
                     if (result != null)
-                    {
                         return result;
-                    }
                 }
                 catch (NotImplementedException)
                 {
                 }
-            }
             return null;
         }
 
         public SqlMapper.IMemberMap GetConstructorParameter(ConstructorInfo constructor, string columnName)
         {
             foreach (var mapper in _mappers)
-            {
                 try
                 {
                     var result = mapper.GetConstructorParameter(constructor, columnName);
                     if (result != null)
-                    {
                         return result;
-                    }
                 }
                 catch (NotImplementedException)
                 {
                 }
-            }
             return null;
         }
 
         public SqlMapper.IMemberMap GetMember(string columnName)
         {
             foreach (var mapper in _mappers)
-            {
                 try
                 {
                     var result = mapper.GetMember(columnName);
                     if (result != null)
-                    {
                         return result;
-                    }
                 }
                 catch (NotImplementedException)
                 {
                 }
-            }
             return null;
         }
     }

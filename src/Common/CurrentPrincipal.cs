@@ -11,7 +11,7 @@ namespace Fileharbor.Common
         }
 
         public Guid Id { get; set; }
-       
+
         public bool IsAuthenticated { get; set; }
     }
 }

@@ -22,9 +22,7 @@ namespace Fileharbor.Common.Utilities
         public static string HashPassword(string password, int iterationCount)
         {
             if (password == null)
-            {
                 throw new ArgumentNullException(nameof(password));
-            }
 
             // Produce a version 0 (see comment above) text hash.
             byte[] salt;
@@ -45,23 +43,16 @@ namespace Fileharbor.Common.Utilities
         public static bool VerifyHashedPassword(string hashedPassword, string password, int iterationCount)
         {
             if (hashedPassword == null)
-            {
                 return false;
-            }
             if (password == null)
-            {
                 throw new ArgumentNullException(nameof(password));
-            }
 
             var hashedPasswordBytes = Convert.FromBase64String(hashedPassword);
 
             // Verify a version 0 (see comment above) text hash.
 
-            if (hashedPasswordBytes.Length != (1 + SaltSize + Pbkdf2SubkeyLength) || hashedPasswordBytes[0] != 0x00)
-            {
-                // Wrong length or version header.
+            if (hashedPasswordBytes.Length != 1 + SaltSize + Pbkdf2SubkeyLength || hashedPasswordBytes[0] != 0x00)
                 return false;
-            }
 
             var salt = new byte[SaltSize];
             Buffer.BlockCopy(hashedPasswordBytes, 1, salt, 0, SaltSize);
@@ -75,25 +66,19 @@ namespace Fileharbor.Common.Utilities
             }
             return ByteArraysEqual(storedSubkey, generatedSubkey);
         }
-        
+
         [MethodImpl(MethodImplOptions.NoOptimization)]
         private static bool ByteArraysEqual(byte[] a, byte[] b)
         {
             if (ReferenceEquals(a, b))
-            {
                 return true;
-            }
 
             if (a == null || b == null || a.Length != b.Length)
-            {
                 return false;
-            }
 
             var areSame = true;
             for (var i = 0; i < a.Length; i++)
-            {
-                areSame &= (a[i] == b[i]);
-            }
+                areSame &= a[i] == b[i];
             return areSame;
         }
     }

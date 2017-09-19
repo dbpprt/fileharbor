@@ -25,7 +25,8 @@ namespace Fileharbor.Services
         private readonly ILogger<UserService> _logger;
         private readonly SigningCredentials _signingCredentials;
 
-        public UserService(IOptions<AuthenticationConfiguration> authenticationConfiguration, ILogger<UserService> logger, IDbConnection database, SigningCredentials signingCredentials)
+        public UserService(IOptions<AuthenticationConfiguration> authenticationConfiguration,
+            ILogger<UserService> logger, IDbConnection database, SigningCredentials signingCredentials)
             : base(database)
         {
             _authenticationConfiguration = authenticationConfiguration;
@@ -33,24 +34,21 @@ namespace Fileharbor.Services
             _signingCredentials = signingCredentials;
         }
 
-        private string NormalizeMailAddress(string mailAddress)
-        {
-            return mailAddress.ToLowerInvariant();
-        }
-        
         public async Task<(Guid?, bool)> RegisterAsync(UserEntity entity, string password, Transaction transaction)
         {
             var database = await GetDatabaseConnectionAsync();
             transaction = transaction.Spawn(database);
-            
+
             try
             {
                 var existingUser = await TryGetUserByMailAsync(entity.MailAddress, transaction);
 
                 if (existingUser != null)
                 {
-                    _logger.LogWarning(LoggingEvents.InsertItemAlreadyExists, "Unable to create new user, mail address is already taken {0}", entity.MailAddress);
-                    throw new ArgumentOutOfRangeException(nameof(entity.MailAddress), "E-Mail address is already taken!");
+                    _logger.LogWarning(LoggingEvents.InsertItemAlreadyExists,
+                        "Unable to create new user, mail address is already taken {0}", entity.MailAddress);
+                    throw new ArgumentOutOfRangeException(nameof(entity.MailAddress),
+                        "E-Mail address is already taken!");
                 }
 
                 entity.PasswordHash =
@@ -58,13 +56,22 @@ namespace Fileharbor.Services
                 entity.Validated = _authenticationConfiguration.Value.EnableMailValidation != true;
                 entity.Id = Guid.NewGuid();
 
-                _logger.LogDebug(LoggingEvents.InsertItem, "Trying to create new user {0} with id {1}", entity.MailAddress, entity.Id);
+                _logger.LogDebug(LoggingEvents.InsertItem, "Trying to create new user {0} with id {1}",
+                    entity.MailAddress, entity.Id);
 
                 await database.ExecuteAsync(
                     $"insert into users (id, email, givenname, surname, superadmin, password_hash, validated) " +
-                    $"values (@Id, @MailAddress, @GivenName, @SurName, false, @PasswordHash, @Validated)",
-                    new { entity.Id, entity.MailAddress, entity.GivenName, entity.SurName, entity.PasswordHash, entity.Validated },
-                    (DbTransaction)transaction);
+                    $"values (@id, @email, @givenname, @surname, false, @password_hash, @validated)",
+                    new
+                    {
+                        id = entity.Id,
+                        email = entity.MailAddress,
+                        givenname = entity.GivenName,
+                        surname = entity.SurName,
+                        password_hash = entity.PasswordHash,
+                        validated = entity.Validated
+                    },
+                    (DbTransaction) transaction);
                 await transaction.CommitAsync();
 
                 return (entity.Id, entity.Validated);
@@ -77,27 +84,17 @@ namespace Fileharbor.Services
             }
         }
 
-        public async Task<UserEntity> TryGetUserByMailAsync(string mailAddress, Transaction transaction)
-        {
-            try
-            {
-                return await GetUserByMailAsync(mailAddress, transaction);
-            }
-            catch (ArgumentOutOfRangeException)
-            {
-                return null;
-            }
-        }
-
         public async Task<UserEntity> GetUserByMailAsync(string mailAddress, Transaction transaction)
         {
             var database = await GetDatabaseConnectionAsync();
 
             var normalizedMailAddress = NormalizeMailAddress(mailAddress);
-            _logger.LogDebug("Trying to lookup user with mail {0} and normalized mail {1}", mailAddress, normalizedMailAddress);
+            _logger.LogDebug("Trying to lookup user with mail {0} and normalized mail {1}", mailAddress,
+                normalizedMailAddress);
 
-            var user = await database.QueryFirstOrDefaultAsync<UserEntity>("select * from users where email = @MailAddress",
-                new { MailAddress = normalizedMailAddress }, (DbTransaction)transaction);
+            var user = await database.QueryFirstOrDefaultAsync<UserEntity>(
+                "select * from users where email = @MailAddress",
+                new {MailAddress = normalizedMailAddress}, (DbTransaction) transaction);
 
             if (user == null)
             {
@@ -117,7 +114,8 @@ namespace Fileharbor.Services
             if (!PasswordHasher.VerifyHashedPassword(user.PasswordHash, password,
                 _authenticationConfiguration.Value.HashIterations))
             {
-                _logger.LogWarning(LoggingEvents.AuthFailure, "User tried to login with invalid credentials! Mail: {0} Password: {1}");
+                _logger.LogWarning(LoggingEvents.AuthFailure,
+                    "User tried to login with invalid credentials! Mail: {0} Password: {1}");
                 throw new ArgumentOutOfRangeException(nameof(password), "Invalid password.");
             }
 
@@ -129,20 +127,38 @@ namespace Fileharbor.Services
                 new Claim(JwtRegisteredClaimNames.Iss, _authenticationConfiguration.Value.Issuer),
                 new Claim(JwtRegisteredClaimNames.Sub, mailAddress),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Iat, new DateTimeOffset(now).ToUniversalTime().ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
+                new Claim(JwtRegisteredClaimNames.Iat,
+                    new DateTimeOffset(now).ToUniversalTime().ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
             };
 
             // ReSharper disable ArgumentsStyleNamedExpression
             var jwt = new JwtSecurityToken(
-                issuer: _authenticationConfiguration.Value.Issuer,
-                audience: _authenticationConfiguration.Value.Audience,
-                claims: claims,
-                notBefore: now,
-                expires: now.AddHours(_authenticationConfiguration.Value.TokenLifeTimeInHours),
+                _authenticationConfiguration.Value.Issuer,
+                _authenticationConfiguration.Value.Audience,
+                claims,
+                now,
+                now.AddHours(_authenticationConfiguration.Value.TokenLifeTimeInHours),
                 signingCredentials: _signingCredentials);
             // ReSharper restore ArgumentsStyleNamedExpression
 
             return new JwtSecurityTokenHandler().WriteToken(jwt);
+        }
+
+        private string NormalizeMailAddress(string mailAddress)
+        {
+            return mailAddress.ToLowerInvariant();
+        }
+
+        public async Task<UserEntity> TryGetUserByMailAsync(string mailAddress, Transaction transaction)
+        {
+            try
+            {
+                return await GetUserByMailAsync(mailAddress, transaction);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                return null;
+            }
         }
     }
 }

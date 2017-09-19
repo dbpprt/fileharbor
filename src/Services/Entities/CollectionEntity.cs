@@ -8,16 +8,20 @@ namespace Fileharbor.Services.Entities
     [Table("collections")]
     public class CollectionEntity
     {
-        [Key, ColumnName("id")]
+        [Key]
+        [ColumnName("id")]
         public Guid Id { get; set; }
 
-        [Required, ColumnName("name")]
+        [Required]
+        [ColumnName("name")]
         public string Name { get; set; }
 
-        [Required, ColumnName("quota")]
+        [Required]
+        [ColumnName("quota")]
         public long Quota { get; set; }
 
-        [Required, ColumnName("bytes_used")]
+        [Required]
+        [ColumnName("bytes_used")]
         public long BytesUsed { get; set; }
 
         [ColumnName("template_id")]

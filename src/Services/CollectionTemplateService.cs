@@ -17,35 +17,15 @@ namespace Fileharbor.Services
     [UsedImplicitly]
     public class CollectionTemplateService : ServiceBase, ICollectionTemplateService
     {
-        private readonly ILogger<CollectionTemplateService> _logger;
         private readonly IHostingEnvironment _hostingEnvironment;
+        private readonly ILogger<CollectionTemplateService> _logger;
 
-        public CollectionTemplateService(ILogger<CollectionTemplateService> logger, IHostingEnvironment hostingEnvironment, IDbConnection database)
+        public CollectionTemplateService(ILogger<CollectionTemplateService> logger,
+            IHostingEnvironment hostingEnvironment, IDbConnection database)
             : base(database)
         {
             _logger = logger;
             _hostingEnvironment = hostingEnvironment;
-        }
-
-        private async Task<IEnumerable<T>> GetIncludesForTemplate<T>(Template template, IEnumerable<string> includes, string templateFolder)
-        {
-            var results = new List<T>();
-
-            foreach (var include in includes)
-            {
-                var path = Path.Combine(templateFolder, include);
-
-                if (!File.Exists(path))
-                {
-                    _logger.LogCritical("Invalid reference for template {0} and include path {1}", template.Id, path);
-                    throw new ArgumentOutOfRangeException(); // TODO: Add exception!
-                }
-
-                var content = await File.ReadAllTextAsync(path);
-                results.AddRange(JsonConvert.DeserializeObject<T[]>(content));
-            }
-
-            return results;
         }
 
         public async Task<Template> GetTemplateByIdAsync(Guid templateId)
@@ -81,9 +61,7 @@ namespace Fileharbor.Services
                     Path.GetFileName(_).StartsWith("template.", StringComparison.InvariantCultureIgnoreCase));
 
                 if (templateFile == null)
-                {
                     _logger.LogDebug("No matching template file found in folder {0}", templateFolder);
-                }
 
                 try
                 {
@@ -103,7 +81,8 @@ namespace Fileharbor.Services
                         continue;
                     }
 
-                    result.Columns = await GetIncludesForTemplate<Column>(result, result.ColumnIncludes, templateFolder);
+                    result.Columns =
+                        await GetIncludesForTemplate<Column>(result, result.ColumnIncludes, templateFolder);
                     result.ContentTypes =
                         await GetIncludesForTemplate<ContentType>(result, result.ContentTypeIncludes, templateFolder);
 
@@ -115,6 +94,28 @@ namespace Fileharbor.Services
                 {
                     _logger.LogWarning(e, "Unable to parse template file {0}", templateFile);
                 }
+            }
+
+            return results;
+        }
+
+        private async Task<IEnumerable<T>> GetIncludesForTemplate<T>(Template template, IEnumerable<string> includes,
+            string templateFolder)
+        {
+            var results = new List<T>();
+
+            foreach (var include in includes)
+            {
+                var path = Path.Combine(templateFolder, include);
+
+                if (!File.Exists(path))
+                {
+                    _logger.LogCritical("Invalid reference for template {0} and include path {1}", template.Id, path);
+                    throw new ArgumentOutOfRangeException(); // TODO: Add exception!
+                }
+
+                var content = await File.ReadAllTextAsync(path);
+                results.AddRange(JsonConvert.DeserializeObject<T[]>(content));
             }
 
             return results;

@@ -13,6 +13,5 @@
         public const int InsertItemAlreadyExists = 4002;
 
         public const int AuthFailure = 5000;
-        
     }
 }

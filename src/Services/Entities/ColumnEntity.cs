@@ -8,27 +8,32 @@ namespace Fileharbor.Services.Entities
     [Table("columns")]
     public class ColumnEntity
     {
-        [Key, ColumnName("id")]
+        [Key]
+        [ColumnName("id")]
         public Guid Id { get; set; }
 
         [ColumnName("collection_id")]
         public Guid? CollectionId { get; set; }
 
-        [Required, ColumnName("name")]
+        [Required]
+        [ColumnName("name")]
         public string Name { get; set; }
 
         [ColumnName("description")]
         public string Description { get; set; }
 
-        [Required, ColumnName("group")]
+        [Required]
+        [ColumnName("group")]
         public string Group { get; set; }
 
-        [Required, ColumnName("type")]
+        [Required]
+        [ColumnName("type")]
         public string Type { get; set; }
 
-        [Required, ColumnName("sealed")]
+        [Required]
+        [ColumnName("sealed")]
         public bool Sealed { get; set; }
-        
+
         [ColumnName("settings")]
         public string Settings { get; set; }
     }

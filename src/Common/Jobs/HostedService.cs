@@ -9,8 +9,8 @@ namespace Fileharbor.Common.Jobs
     public abstract class HostedService : IHostedService
     {
         private readonly IServiceProvider _serviceProvider;
-        private Task _executingTask;
         private CancellationTokenSource _cts;
+        private Task _executingTask;
 
         public HostedService(IServiceProvider serviceProvider)
         {
@@ -32,9 +32,7 @@ namespace Fileharbor.Common.Jobs
         public async Task StopAsync(CancellationToken cancellationToken)
         {
             if (_executingTask == null)
-            {
                 return;
-            }
 
             _cts.Cancel();
 
@@ -43,6 +41,7 @@ namespace Fileharbor.Common.Jobs
             cancellationToken.ThrowIfCancellationRequested();
         }
 
-        protected abstract Task ExecuteAsync(IServiceProvider scopeServiceProvider, CancellationToken cancellationToken);
+        protected abstract Task ExecuteAsync(IServiceProvider scopeServiceProvider,
+            CancellationToken cancellationToken);
     }
 }

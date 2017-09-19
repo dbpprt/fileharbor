@@ -1,13 +1,13 @@
 {
-    "id": "37436395-63ab-4fbe-8553-f65962b3e15a",
-    "name": "Blank",
-    "description": "Just a blank collection without any gimmicks",
+  "id": "37436395-63ab-4fbe-8553-f65962b3e15a",
+  "name": "Blank",
+  "description": "Just a blank collection without any gimmicks",
 
-    "include_columns": [
-        "../base.columns.en-US.json"
-    ],
+  "include_columns": [
+    "../base.columns.en-US.json"
+  ],
 
-    "include_contenttypes": [
-        "../base.contenttypes.en-US.json"
-    ]
+  "include_contenttypes": [
+    "../base.contenttypes.en-US.json"
+  ]
 }

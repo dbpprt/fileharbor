@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Fileharbor.Common;
 using Fileharbor.Exceptions;
@@ -15,8 +13,8 @@ namespace Fileharbor.Middlewares
 {
     public class ExceptionHandlerMiddleware
     {
-        private readonly RequestDelegate _next;
         private readonly IHostingEnvironment _hostingEnvironment;
+        private readonly RequestDelegate _next;
 
         public ExceptionHandlerMiddleware(RequestDelegate next, IHostingEnvironment hostingEnvironment)
         {
@@ -34,7 +32,7 @@ namespace Fileharbor.Middlewares
             };
 
             var result = JsonConvert.SerializeObject(
-                model, 
+                model,
                 hostingEnvironment.IsDevelopment() ? Formatting.Indented : Formatting.None);
 
             httpContext.Response.Clear();
@@ -43,7 +41,8 @@ namespace Fileharbor.Middlewares
         }
 
         [UsedImplicitly]
-        public async Task Invoke(HttpContext httpContext, ILogger<ExceptionHandlerMiddleware> logger, CurrentPrincipal principal, IHostingEnvironment hostingEnvironment)
+        public async Task Invoke(HttpContext httpContext, ILogger<ExceptionHandlerMiddleware> logger,
+            CurrentPrincipal principal, IHostingEnvironment hostingEnvironment)
         {
             try
             {
@@ -53,7 +52,8 @@ namespace Fileharbor.Middlewares
             {
                 logger.LogError(e, "Unhandled FileharborException exception raised!");
                 logger.LogError(e, "Exception: {0}", JsonConvert.SerializeObject(e, Formatting.Indented));
-                logger.LogError(e, "CurrentPrincipal: {0}", JsonConvert.SerializeObject(principal, Formatting.Indented));
+                logger.LogError(e, "CurrentPrincipal: {0}",
+                    JsonConvert.SerializeObject(principal, Formatting.Indented));
 
                 await WriteResponse(httpContext, e, _hostingEnvironment);
             }
@@ -61,7 +61,8 @@ namespace Fileharbor.Middlewares
             {
                 logger.LogCritical(e, "Unhandled FileharborException exception raised!");
                 logger.LogCritical(e, "Exception: {0}", JsonConvert.SerializeObject(e, Formatting.Indented));
-                logger.LogCritical(e, "CurrentPrincipal: {0}", JsonConvert.SerializeObject(principal, Formatting.Indented));
+                logger.LogCritical(e, "CurrentPrincipal: {0}",
+                    JsonConvert.SerializeObject(principal, Formatting.Indented));
 
                 await WriteResponse(httpContext, e, _hostingEnvironment);
             }

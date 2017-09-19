@@ -1,6 +1,5 @@
 ﻿using System.Data;
 using System.Threading.Tasks;
-using Fileharbor.Common.Database;
 using Npgsql;
 
 namespace Fileharbor.Services
@@ -17,19 +16,13 @@ namespace Fileharbor.Services
         protected async Task<IDbConnection> GetDatabaseConnectionAsync()
         {
             if (_connection.State == ConnectionState.Open)
-            {
                 return _connection;
-            }
 
             if (_connection is NpgsqlConnection postgresConnection)
-            {
                 await postgresConnection.OpenAsync();
-            }
             else
-            {
                 _connection.Open();
-            }
-            
+
             return _connection;
         }
     }

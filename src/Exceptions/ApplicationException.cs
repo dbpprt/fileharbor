@@ -5,8 +5,6 @@ namespace Fileharbor.Exceptions
 {
     public abstract class FileharborException : Exception
     {
-        public int StatusCode { get; }
-
         protected FileharborException(int statusCode)
         {
             StatusCode = statusCode;
@@ -17,14 +15,18 @@ namespace Fileharbor.Exceptions
             StatusCode = statusCode;
         }
 
-        protected FileharborException(int statusCode, string message, Exception innerException) : base(message, innerException)
+        protected FileharborException(int statusCode, string message, Exception innerException) : base(message,
+            innerException)
         {
             StatusCode = statusCode;
         }
 
-        protected FileharborException(int statusCode, SerializationInfo info, StreamingContext context) : base(info, context)
+        protected FileharborException(int statusCode, SerializationInfo info, StreamingContext context) : base(info,
+            context)
         {
             StatusCode = statusCode;
         }
+
+        public int StatusCode { get; }
     }
 }

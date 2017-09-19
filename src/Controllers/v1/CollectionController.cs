@@ -17,32 +17,38 @@ namespace Fileharbor.Controllers.v1
         private readonly ICollectionService _collectionService;
         private readonly ICollectionTemplateService _collectionTemplateService;
 
-        public CollectionController(ICollectionService collectionService, ICollectionTemplateService collectionTemplateService, CurrentPrincipal principal) : base(principal)
+        public CollectionController(ICollectionService collectionService,
+            ICollectionTemplateService collectionTemplateService, CurrentPrincipal principal) : base(principal)
         {
             _collectionService = collectionService;
             _collectionTemplateService = collectionTemplateService;
         }
 
-        [HttpPost, Route("")]
-        public async Task<IActionResult> Create([FromBody]CreateCollectionRequest model)
+        [HttpPost]
+        [Route("")]
+        public async Task<IActionResult> Create([FromBody] CreateCollectionRequest model)
         {
-            return Ok(await _collectionService.CreateCollectionAsync(model.Name, model.Description, model.IsDefault, null));
+            return Ok(await _collectionService.CreateCollectionAsync(model.Name, model.Description, model.IsDefault,
+                null));
         }
 
-        [HttpGet, Route("templates/{language}")]
+        [HttpGet]
+        [Route("templates/{language}")]
         public async Task<IActionResult> GetTemplates(int language)
         {
-            return Ok((await _collectionTemplateService.GetTemplatesByLanguageAsync(language)).Select(_ => new CollectionTemplateResponse
-            {
-                Id = _.Id,
-                Name = _.Name,
-                Description = _.Description
-            }));
+            return Ok((await _collectionTemplateService.GetTemplatesByLanguageAsync(language)).Select(_ =>
+                new CollectionTemplateResponse
+                {
+                    Id = _.Id,
+                    Name = _.Name,
+                    Description = _.Description
+                }));
         }
 
-        [HttpPatch, Route("initialize/{collectionId}/{templateId}")]
-        [SwaggerResponse((int)HttpStatusCode.NoContent, typeof(void))]
-        [SwaggerResponse((int)HttpStatusCode.InternalServerError, typeof(ExceptionResponse))]
+        [HttpPatch]
+        [Route("initialize/{collectionId}/{templateId}")]
+        [SwaggerResponse((int) HttpStatusCode.NoContent, typeof(void))]
+        [SwaggerResponse((int) HttpStatusCode.InternalServerError, typeof(ExceptionResponse))]
         public async Task<IActionResult> Initialize(Guid collectionId, Guid templateId)
         {
             await _collectionService.InitializeCollectionAsync(collectionId, templateId, null);

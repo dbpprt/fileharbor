@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Data;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using Dapper;
 using Fileharbor.Common;
 using Fileharbor.Common.Configuration;
 using Fileharbor.Common.Database;
@@ -26,9 +26,9 @@ namespace Fileharbor
 {
     public class Startup
     {
+        private readonly IOptions<AuthenticationConfiguration> _authenticationConfiguration;
         private readonly IConfiguration _configuration;
         private readonly IHostingEnvironment _environment;
-        private readonly IOptions<AuthenticationConfiguration> _authenticationConfiguration;
         private readonly SigningCredentials _signingCredentials;
 
         public Startup(IConfiguration configuration,
@@ -40,11 +40,12 @@ namespace Fileharbor
             _environment = environment;
 
             _signingCredentials = new SigningCredentials(
-                new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_authenticationConfiguration.Value.SigningCredentials)),
+                new SymmetricSecurityKey(
+                    Encoding.ASCII.GetBytes(_authenticationConfiguration.Value.SigningCredentials)),
                 SecurityAlgorithms.HmacSha256);
 
             // dapper needs to be configured to use a custom mapper for all columns
-            Dapper.SqlMapper.SetTypeMap(typeof(UserEntity), new ColumnNameAttributeTypeMapper<UserEntity>());
+            SqlMapper.SetTypeMap(typeof(UserEntity), new ColumnNameAttributeTypeMapper<UserEntity>());
         }
 
         [UsedImplicitly]
@@ -73,16 +74,17 @@ namespace Fileharbor
             // configure swagger
             services.AddSwaggerGen(options =>
             {
-                options.AddSecurityDefinition("Bearer", new ApiKeyScheme()
+                options.AddSecurityDefinition("Bearer", new ApiKeyScheme
                 {
-                    Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+                    Description =
+                        "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
                     Name = "Authorization",
                     In = "header",
                     Type = "apiKey"
                 });
 
                 // TODO: Add this to the configuration
-                options.SwaggerDoc("v1", new Info { Title = _configuration["Swagger:Title"], Version = "v1" });
+                options.SwaggerDoc("v1", new Info {Title = _configuration["Swagger:Title"], Version = "v1"});
             });
 
             // this is required for the auth service to sign the jwt token
@@ -103,7 +105,7 @@ namespace Fileharbor
                     ValidIssuer = _authenticationConfiguration.Value.Issuer
                 };
 
-                options.Events = new JwtBearerEvents()
+                options.Events = new JwtBearerEvents
                 {
                     OnAuthenticationFailed = c =>
                     {
@@ -126,9 +128,7 @@ namespace Fileharbor
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())
-            {
                 app.UseDeveloperExceptionPage();
-            }
 
             app.UseSwagger();
 
@@ -148,10 +148,13 @@ namespace Fileharbor
             var configuration = context.Configuration;
 
             // map all configuration sections
-            services.Configure<DatabaseConfiguration>(configuration.GetSection(Constants.ConfigurationSections.Database));
+            services.Configure<DatabaseConfiguration>(
+                configuration.GetSection(Constants.ConfigurationSections.Database));
             services.Configure<SwaggerConfiguration>(configuration.GetSection(Constants.ConfigurationSections.Swagger));
-            services.Configure<AuthenticationConfiguration>(configuration.GetSection(Constants.ConfigurationSections.Authentication));
-            services.Configure<LanguageConfiguration>(configuration.GetSection(Constants.ConfigurationSections.Language));
+            services.Configure<AuthenticationConfiguration>(
+                configuration.GetSection(Constants.ConfigurationSections.Authentication));
+            services.Configure<LanguageConfiguration>(
+                configuration.GetSection(Constants.ConfigurationSections.Language));
         }
     }
 }

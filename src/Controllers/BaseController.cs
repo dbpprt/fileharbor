@@ -1,9 +1,6 @@
 ﻿using System;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using Fileharbor.Common;
-using Fileharbor.Exceptions;
-using Fileharbor.Services.Schema;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -30,13 +27,9 @@ namespace Fileharbor.Controllers
             }
 
             if (!ModelState.IsValid)
-            {
                 context.Result = new BadRequestObjectResult(ModelState);
-            }
             else
-            {
                 base.OnActionExecuting(context);
-            }
         }
     }
 }

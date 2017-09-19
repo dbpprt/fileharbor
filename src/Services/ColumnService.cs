@@ -1,21 +1,15 @@
 ﻿using System;
 using System.Data;
 using System.Data.Common;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using Dapper;
 using Fileharbor.Common;
-using Fileharbor.Common.Configuration;
 using Fileharbor.Common.Database;
-using Fileharbor.Common.Utilities;
 using Fileharbor.Services.Contracts;
 using Fileharbor.Services.Entities;
 using Fileharbor.Services.Schema;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 
 namespace Fileharbor.Services
@@ -26,7 +20,8 @@ namespace Fileharbor.Services
         private readonly ILogger<ColumnService> _logger;
         private readonly IPermissionService _permissionService;
 
-        public ColumnService(ILogger<ColumnService> logger, IPermissionService permissionService, IDbConnection database)
+        public ColumnService(ILogger<ColumnService> logger, IPermissionService permissionService,
+            IDbConnection database)
             : base(database)
         {
             _logger = logger;
@@ -60,7 +55,8 @@ namespace Fileharbor.Services
 
             try
             {
-                _logger.LogDebug(LoggingEvents.InsertItem, "Starting creation of new column in collection {0} with id {1}", collectionId, column.Id);
+                _logger.LogDebug(LoggingEvents.InsertItem,
+                    "Starting creation of new column in collection {0} with id {1}", collectionId, column.Id);
 
                 if (await HasColumnAsync(collectionId, column.Id, transaction))
                 {
@@ -85,7 +81,8 @@ namespace Fileharbor.Services
 
                 await transaction.CommitAsync();
 
-                _logger.LogDebug(LoggingEvents.InsertItem, "Finished creation of new column in collection {0} with id {1}", collectionId, column.Id);
+                _logger.LogDebug(LoggingEvents.InsertItem,
+                    "Finished creation of new column in collection {0} with id {1}", collectionId, column.Id);
             }
             catch (Exception e)
             {

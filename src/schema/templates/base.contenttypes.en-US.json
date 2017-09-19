@@ -1,4 +1,5 @@
-[{
+[
+  {
     "id": "1fd6f427-2ffb-4ec3-be0a-0166dbaedf9c",
     "parent_id": null,
     "name": "Generic item",
@@ -6,17 +7,18 @@
     "group_name": "Base types",
     "sealed": true,
     "columns": [
-        {
-            "id": "1fd6f427-2ffb-4ec3-be0a-0166dbaedf9c",
-            "required": true,
-            "visible": true,
-            "default": null
-        },
-        {
-            "id": "715ba458-1a9e-4161-a271-d1cb2e5823f5",
-            "required": true,
-            "visible": true,
-            "default": null
-        }
+      {
+        "id": "1fd6f427-2ffb-4ec3-be0a-0166dbaedf9c",
+        "required": true,
+        "visible": true,
+        "default": null
+      },
+      {
+        "id": "715ba458-1a9e-4161-a271-d1cb2e5823f5",
+        "required": true,
+        "visible": true,
+        "default": null
+      }
     ]
-}]
+  }
+]

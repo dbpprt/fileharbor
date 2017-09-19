@@ -8,25 +8,33 @@ namespace Fileharbor.Services.Entities
     [Table("users")]
     public class UserEntity
     {
-        [Key, ColumnName("id")]
+        [Key]
+        [ColumnName("id")]
         public Guid Id { get; set; }
 
-        [Required, EmailAddress, ColumnName("email")]
+        [Required]
+        [EmailAddress]
+        [ColumnName("email")]
         public string MailAddress { get; set; }
 
-        [Required, ColumnName("password_hash")]
+        [Required]
+        [ColumnName("password_hash")]
         public string PasswordHash { get; set; }
 
-        [Required, ColumnName("givenname")]
+        [Required]
+        [ColumnName("givenname")]
         public string GivenName { get; set; }
 
-        [Required, ColumnName("surname")]
+        [Required]
+        [ColumnName("surname")]
         public string SurName { get; set; }
 
-        [Required, ColumnName("validated")]
+        [Required]
+        [ColumnName("validated")]
         public bool Validated { get; set; }
 
-        [Required, ColumnName("last_login")]
+        [Required]
+        [ColumnName("last_login")]
         public DateTime? LastLogin { get; set; }
     }
 }

@@ -4,7 +4,8 @@ namespace Fileharbor.ViewModels.v1.Authentication
 {
     public class LoginRequest
     {
-        [Required, EmailAddress]
+        [Required]
+        [EmailAddress]
         public string MailAddress { get; set; }
 
         [Required]

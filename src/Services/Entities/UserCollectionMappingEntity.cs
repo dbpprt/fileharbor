@@ -8,9 +8,10 @@ namespace Fileharbor.Services.Entities
     [Table("user_collection_mappings")]
     public class UserCollectionMappingEntity
     {
-        [Key, ColumnName("user_id")]
+        [Key]
+        [ColumnName("user_id")]
         public Guid UserId { get; set; }
-        
+
         [ColumnName("collection_id")]
         public Guid CollectionId { get; set; }
 

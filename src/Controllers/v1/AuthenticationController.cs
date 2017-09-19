@@ -1,6 +1,4 @@
-﻿using System;
-using System.Net;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Fileharbor.Common;
 using Fileharbor.Services.Contracts;
 using Fileharbor.Services.Entities;
@@ -20,8 +18,10 @@ namespace Fileharbor.Controllers.v1
             _userService = userService;
         }
 
-        [HttpPost, Route("token"), AllowAnonymous]
-        public async Task<IActionResult> AcquireToken([FromBody]LoginRequest model)
+        [HttpPost]
+        [Route("token")]
+        [AllowAnonymous]
+        public async Task<IActionResult> AcquireToken([FromBody] LoginRequest model)
         {
             return Json(new
             {
@@ -29,8 +29,10 @@ namespace Fileharbor.Controllers.v1
             });
         }
 
-        [HttpPost, Route("register"), AllowAnonymous]
-        public async Task<IActionResult> Register([FromBody]RegistrationRequest model)
+        [HttpPost]
+        [Route("register")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Register([FromBody] RegistrationRequest model)
         {
             (var id, var validated) = await _userService.RegisterAsync(new UserEntity
             {

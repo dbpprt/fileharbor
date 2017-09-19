@@ -6,7 +6,7 @@ namespace Fileharbor.ViewModels.v1.Collections
     {
         [Required]
         public string Name { get; set; }
-        
+
         public string Description { get; set; }
 
         [Required]

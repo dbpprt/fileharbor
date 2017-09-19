@@ -10,10 +10,12 @@ namespace Fileharbor
             BuildWebHost(args).Run();
         }
 
-        private static IWebHost BuildWebHost(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
+        private static IWebHost BuildWebHost(string[] args)
+        {
+            return WebHost.CreateDefaultBuilder(args)
                 .ConfigureServices(Startup.ConfigureStartupServices)
                 .UseStartup<Startup>()
                 .Build();
+        }
     }
 }

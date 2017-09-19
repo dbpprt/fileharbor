@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Fileharbor.Common.Database;
 
@@ -13,7 +12,7 @@ namespace Fileharbor.Services.Entities
 
         [ColumnName("column_id")]
         public Guid ColumnId { get; set; }
-        
+
         [ColumnName("collection_id")]
         public Guid CollectionId { get; set; }
 

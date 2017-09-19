@@ -16,18 +16,22 @@ namespace Fileharbor.Controllers.v1
     {
         private readonly IOptions<LanguageConfiguration> _languageConfiguration;
 
-        public SystemController(CurrentPrincipal currentPrincipal, IOptions<LanguageConfiguration> languageConfiguration) : base(currentPrincipal)
+        public SystemController(CurrentPrincipal currentPrincipal,
+            IOptions<LanguageConfiguration> languageConfiguration) : base(currentPrincipal)
         {
             _languageConfiguration = languageConfiguration;
         }
 
-        [HttpGet, Route("version")]
+        [HttpGet]
+        [Route("version")]
         public string GetVersion()
         {
             return PlatformServices.Default.Application.ApplicationVersion;
         }
 
-        [HttpGet, Route("languages"), AllowAnonymous]
+        [HttpGet]
+        [Route("languages")]
+        [AllowAnonymous]
         public IEnumerable<AvailableLanguagesResponse> GetAvailableLanguages()
         {
             return _languageConfiguration.Value.AvailableLanguages.Select(_ => new CultureInfo(_)).Select(_ =>
@@ -38,6 +42,5 @@ namespace Fileharbor.Controllers.v1
                     LocalName = _.DisplayName
                 });
         }
-
     }
 }

@@ -15,14 +15,16 @@ namespace Fileharbor.Services
     [UsedImplicitly]
     public class CollectionService : ServiceBase, ICollectionService
     {
-        private readonly ILogger<CollectionService> _logger;
-        private readonly IPermissionService _permissionService;
         private readonly ICollectionTemplateService _collectionTemplateService;
         private readonly IColumnService _columnService;
         private readonly IContentTypeService _contentTypeService;
         private readonly CurrentPrincipal _currentPrincipal;
+        private readonly ILogger<CollectionService> _logger;
+        private readonly IPermissionService _permissionService;
 
-        public CollectionService(ILogger<CollectionService> logger, IPermissionService permissionService, ICollectionTemplateService collectionTemplateService, IColumnService columnService, IContentTypeService contentTypeService, CurrentPrincipal currentPrincipal, IDbConnection database)
+        public CollectionService(ILogger<CollectionService> logger, IPermissionService permissionService,
+            ICollectionTemplateService collectionTemplateService, IColumnService columnService,
+            IContentTypeService contentTypeService, CurrentPrincipal currentPrincipal, IDbConnection database)
             : base(database)
         {
             _logger = logger;
@@ -33,83 +35,8 @@ namespace Fileharbor.Services
             _currentPrincipal = currentPrincipal;
         }
 
-        public async Task AssignCollectionMappingAsync(Guid userId, Guid collectionId, bool isDefault, Transaction transaction)
-        {
-            var database = await GetDatabaseConnectionAsync();
-            transaction = transaction.Spawn(database);
-
-            if (!await HasCollectionMappingAsync(userId, collectionId, transaction))
-            {
-                await _permissionService.EnsureCollectionPermission(collectionId, PermissionLevel.Owner, transaction);
-
-                try
-                {
-                    await database.ExecuteAsync(
-                        "insert into user_collection_mappings (user_id, collection_id, is_default) values(@UserId, @CollectionId, @IsDefault)",
-                        new { UserId = userId, CollectionId = collectionId, IsDefault = isDefault },
-                        (DbTransaction)transaction);
-                    await transaction.CommitAsync();
-                }
-                catch (Exception e)
-                {
-                    _logger.LogWarning(LoggingEvents.InsertItem, e, "Unable to add collection mapping - unexpected exception");
-                    await transaction.RollbackAsync();
-                    throw;
-                }
-            }
-        }
-
-        public async Task<bool> HasCollectionMappingAsync(Guid userId, Guid collectionId, Transaction transaction)
-        {
-            var database = await GetDatabaseConnectionAsync();
-            transaction = transaction.Spawn(database);
-
-            return await transaction.ExecuteAsync(async () =>
-            {
-                var entity = await database.QueryFirstOrDefaultAsync<UserCollectionMappingEntity>(
-                    "select from user_collection_mappings where user_id = @UserId and collection_id = @CollectionId",
-                    new {UserId = userId, CollectionId = collectionId},
-                    (DbTransaction) transaction);
-
-                return entity != null;
-            });
-        }
-
-        public async Task<bool> IsCollectionInitializedAsync(Guid collectionId, Transaction transaction)
-        {
-            var database = await GetDatabaseConnectionAsync();
-            transaction = transaction.Spawn(database);
-
-            return await transaction.ExecuteAsync(async () =>
-            {
-                await _permissionService.EnsureCollectionPermission(collectionId, PermissionLevel.Member, transaction);
-
-                var entity = await database.QueryFirstOrDefaultAsync<Guid?>(
-                    "select template_id from collections where id = @id",
-                    new { id = collectionId },
-                    (DbTransaction)transaction);
-                
-                return entity.HasValue;
-            });
-        }
-
-        public async Task SetTemplateIdForCollectionAsync(Guid collectionId, Guid templateId, Transaction transaction)
-        {
-            var database = await GetDatabaseConnectionAsync();
-            transaction = transaction.Spawn(database);
-
-            await _permissionService.EnsureCollectionPermission(collectionId, PermissionLevel.Owner, transaction);
-
-            await transaction.ExecuteAsync<Task>(async () =>
-            {
-                await database.ExecuteAsync(
-                    "update collections set template_id = @template_id where id = @id",
-                    new { id = collectionId, template_id = templateId },
-                    (DbTransaction)transaction);
-            });
-        }
-
-        public async Task<Guid> CreateCollectionAsync(string collectionName, string description, bool isDefault, Transaction transaction)
+        public async Task<Guid> CreateCollectionAsync(string collectionName, string description, bool isDefault,
+            Transaction transaction)
         {
             var database = await GetDatabaseConnectionAsync();
             transaction = transaction.Spawn(database);
@@ -117,17 +44,19 @@ namespace Fileharbor.Services
             try
             {
                 var id = Guid.NewGuid();
-                _logger.LogDebug(LoggingEvents.InsertItem, "Starting creation of new collection {0} with id {1}", collectionName, id);
+                _logger.LogDebug(LoggingEvents.InsertItem, "Starting creation of new collection {0} with id {1}",
+                    collectionName, id);
                 const double quota = 1e+9; // TODO: how to handle collection quotas :/
 
                 await database.ExecuteAsync(
-                    "insert into collections (id, name, quota, description) values(@Id, @Name, @Quota, @Description)",
-                    new { Id = id, Name = collectionName, Quota = quota, Description = description },
-                    (DbTransaction)transaction);
-                await AssignCollectionMappingAsync(_currentPrincipal.Id, id, isDefault, transaction);
+                    "insert into collections (id, name, quota, description) values(@id, @name, @quota, @description)",
+                    new {id, name = collectionName, quota, description},
+                    (DbTransaction) transaction);
+                await AssignCollectionMappingAsync(_currentPrincipal.Id, id, isDefault, true, transaction);
                 await transaction.CommitAsync();
 
-                _logger.LogDebug(LoggingEvents.InsertItem, "Finished creation of new collection {0} with id {1}", collectionName, id);
+                _logger.LogDebug(LoggingEvents.InsertItem, "Finished creation of new collection {0} with id {1}",
+                    collectionName, id);
 
                 return id;
             }
@@ -148,7 +77,9 @@ namespace Fileharbor.Services
 
             try
             {
-                _logger.LogDebug(LoggingEvents.InsertItem, "Starting collection initialization for collection {0} with template id {1}", collectionId, templateId);
+                _logger.LogDebug(LoggingEvents.InsertItem,
+                    "Starting collection initialization for collection {0} with template id {1}", collectionId,
+                    templateId);
                 var template = await _collectionTemplateService.GetTemplateByIdAsync(templateId);
 
                 if (await IsCollectionInitializedAsync(collectionId, transaction))
@@ -158,26 +89,105 @@ namespace Fileharbor.Services
                 }
 
                 foreach (var column in template.Columns)
-                {
                     await _columnService.CreateColumnAsync(collectionId, column, transaction);
-                }
 
                 foreach (var contentType in template.ContentTypes)
-                {
                     await _contentTypeService.CreateContentTypeAsync(collectionId, contentType, transaction);
-                }
 
                 await SetTemplateIdForCollectionAsync(collectionId, templateId, transaction);
                 await transaction.CommitAsync();
 
-                _logger.LogDebug(LoggingEvents.InsertItem, "Finished collection initialization for collection {0} with template id {1}", collectionId, templateId);
+                _logger.LogDebug(LoggingEvents.InsertItem,
+                    "Finished collection initialization for collection {0} with template id {1}", collectionId,
+                    templateId);
             }
             catch (Exception e)
             {
-                _logger.LogWarning(LoggingEvents.InsertItem, e, "Unable to initialize collection - unexpected exception");
+                _logger.LogWarning(LoggingEvents.InsertItem, e,
+                    "Unable to initialize collection - unexpected exception");
                 await transaction.RollbackAsync();
                 throw;
             }
+        }
+
+        public async Task AssignCollectionMappingAsync(Guid userId, Guid collectionId, bool isDefault,
+            bool skipPermissionCheck, Transaction transaction)
+        {
+            var database = await GetDatabaseConnectionAsync();
+            transaction = transaction.Spawn(database);
+
+            if (!await HasCollectionMappingAsync(userId, collectionId, transaction))
+            {
+                if (!skipPermissionCheck)
+                    await _permissionService.EnsureCollectionPermission(collectionId, PermissionLevel.Owner,
+                        transaction);
+
+                try
+                {
+                    await database.ExecuteAsync(
+                        "insert into user_collection_mappings (user_id, collection_id, is_default) values(@user_id, @collection_id, @is_default)",
+                        new {user_id = userId, collection_id = collectionId, is_default = isDefault},
+                        (DbTransaction) transaction);
+                    await transaction.CommitAsync();
+                }
+                catch (Exception e)
+                {
+                    _logger.LogWarning(LoggingEvents.InsertItem, e,
+                        "Unable to add collection mapping - unexpected exception");
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            }
+        }
+
+        public async Task<bool> HasCollectionMappingAsync(Guid userId, Guid collectionId, Transaction transaction)
+        {
+            var database = await GetDatabaseConnectionAsync();
+            transaction = transaction.Spawn(database);
+
+            return await transaction.ExecuteAsync(async () =>
+            {
+                var entity = await database.QueryFirstOrDefaultAsync<UserCollectionMappingEntity>(
+                    "select * from user_collection_mappings where user_id = @user_id and collection_id = @collection_id",
+                    new {user_id = userId, collection_id = collectionId},
+                    (DbTransaction) transaction);
+
+                return entity != null;
+            });
+        }
+
+        public async Task<bool> IsCollectionInitializedAsync(Guid collectionId, Transaction transaction)
+        {
+            var database = await GetDatabaseConnectionAsync();
+            transaction = transaction.Spawn(database);
+
+            return await transaction.ExecuteAsync(async () =>
+            {
+                await _permissionService.EnsureCollectionPermission(collectionId, PermissionLevel.Member, transaction);
+
+                var entity = await database.QueryFirstOrDefaultAsync<Guid?>(
+                    "select template_id from collections where id = @id",
+                    new {id = collectionId},
+                    (DbTransaction) transaction);
+
+                return entity.HasValue;
+            });
+        }
+
+        public async Task SetTemplateIdForCollectionAsync(Guid collectionId, Guid templateId, Transaction transaction)
+        {
+            var database = await GetDatabaseConnectionAsync();
+            transaction = transaction.Spawn(database);
+
+            await _permissionService.EnsureCollectionPermission(collectionId, PermissionLevel.Owner, transaction);
+
+            await transaction.ExecuteAsync<Task>(async () =>
+            {
+                await database.ExecuteAsync(
+                    "update collections set template_id = @template_id where id = @id",
+                    new {id = collectionId, template_id = templateId},
+                    (DbTransaction) transaction);
+            });
         }
     }
 }
