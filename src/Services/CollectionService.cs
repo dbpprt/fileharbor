@@ -112,6 +112,22 @@ namespace Fileharbor.Services
             }
         }
 
+        public async Task<IEnumerable<(Guid, string, PermissionLevel)>> GetMyCollectionsAsync(Transaction transaction)
+        {
+            var database = await GetDatabaseConnectionAsync();
+            transaction = transaction.Spawn(database);
+
+            return await transaction.ExecuteAsync(async () =>
+            {
+                var entities = await database.QueryAsync<CollectionEntity>(
+                    "select id, name from user_collection_mappings join collections on (user_collection_mappings.collection_id = collections.id) where user_collection_mappings.user_id = @user_id",
+                    new {user_id = _currentPrincipal.Id},
+                    (DbTransaction) transaction);
+
+                return entities.Select(_ => (_.Id, _.Name, PermissionLevel.Owner));
+            });
+        }
+
         public async Task AssignCollectionMappingAsync(Guid userId, Guid collectionId, bool isDefault,
             bool skipPermissionCheck, Transaction transaction)
         {
@@ -155,22 +171,6 @@ namespace Fileharbor.Services
                     (DbTransaction) transaction);
 
                 return entity != null;
-            });
-        }
-
-        public async Task<IEnumerable<(Guid, string, PermissionLevel)>> GetMyCollectionsAsync(Transaction transaction)
-        {
-            var database = await GetDatabaseConnectionAsync();
-            transaction = transaction.Spawn(database);
-
-            return await transaction.ExecuteAsync(async () =>
-            {
-                var entities = await database.QueryAsync<CollectionEntity>(
-                    "select id, name from user_collection_mappings join collections on (user_collection_mappings.collection_id = collections.id) where user_collection_mappings.user_id = @user_id",
-                    new { user_id = _currentPrincipal.Id },
-                    (DbTransaction)transaction);
-
-                return entities.Select(_ => (_.Id, _.Name, PermissionLevel.Owner));
             });
         }
 

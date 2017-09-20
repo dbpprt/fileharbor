@@ -5,18 +5,18 @@ using Fileharbor.Common.Database;
 
 namespace Fileharbor.Services.Entities
 {
-    public enum LibraryType
-    {
-        Custom = 0,
-        Inbox = 1
-    }
-
-    [Table("libraries")]
-    public class LibraryEntity
+    [Table("contenttypes")]
+    public class ContentTypeEntity
     {
         [Key]
         [ColumnName("id")]
         public Guid Id { get; set; }
+
+        [ColumnName("collection_id")]
+        public Guid CollectionId { get; set; }
+
+        [ColumnName("parent_id")]
+        public Guid? ParentId { get; set; }
 
         [Required]
         [ColumnName("name")]
@@ -25,10 +25,12 @@ namespace Fileharbor.Services.Entities
         [ColumnName("description")]
         public string Description { get; set; }
 
-        [ColumnName("collection_id")]
-        public Guid CollectionId { get; set; }
+        [Required]
+        [ColumnName("group_name")]
+        public string GroupName { get; set; }
 
-        [ColumnName("type")]
-        public LibraryType Type { get; set; }
+        [Required]
+        [ColumnName("sealed")]
+        public bool Sealed { get; set; }
     }
 }

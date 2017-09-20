@@ -13,7 +13,7 @@ namespace Fileharbor.Services.Entities
         public Guid Id { get; set; }
 
         [ColumnName("collection_id")]
-        public Guid? CollectionId { get; set; }
+        public Guid CollectionId { get; set; }
 
         [Required]
         [ColumnName("name")]

@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.0" author="Dennis Bappert" last-position="228,16" last-zoom="1"
+<dbmodel pgmodeler-ver="0.9.0" author="Dennis Bappert" last-position="0,0" last-zoom="1"
 	 default-schema="public" default-owner="postgres">
 <database name="fileharbor">
 </database>
@@ -125,7 +125,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="contenttypes">
 	<schema name="public"/>
 	<role name="postgres"/>
-	<position x="780" y="900"/>
+	<position x="640" y="920"/>
 	<column name="id" not-null="true">
 		<type name="uuid" length="0"/>
 	</column>
@@ -155,7 +155,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="contenttype_column_mappings">
 	<schema name="public"/>
 	<role name="postgres"/>
-	<position x="1640" y="560"/>
+	<position x="1500" y="940"/>
 	<column name="contenttype_id" not-null="true">
 		<type name="uuid" length="0"/>
 	</column>
@@ -182,7 +182,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="libraries">
 	<schema name="public"/>
 	<role name="postgres"/>
-	<position x="1640" y="360"/>
+	<position x="1640" y="280"/>
 	<column name="id" not-null="true">
 		<type name="uuid" length="0"/>
 	</column>
@@ -195,8 +195,35 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<column name="description">
 		<type name="text" length="0"/>
 	</column>
+	<column name="type" not-null="true">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="sealed" not-null="true" default-value="false">
+		<type name="bool" length="0"/>
+	</column>
 	<constraint name="libraries_pk" type="pk-constr" table="public.libraries">
 		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="library_contenttype_mappings">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="1640" y="600"/>
+	<column name="library_id" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="contenttype_id" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="collection_id" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="visible" not-null="true" default-value="true">
+		<type name="bool" length="0"/>
+	</column>
+	<constraint name="library_contenttype_mappings_pk" type="pk-constr" table="public.library_contenttype_mappings">
+		<columns names="library_id,contenttype_id" ref-type="src-columns"/>
 	</constraint>
 </table>
 
@@ -248,6 +275,18 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<columns names="id" ref-type="dst-columns"/>
 </constraint>
 
+<constraint name="libraries_fk" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.libraries" table="public.library_contenttype_mappings">
+	<columns names="library_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="contenttypes_fk" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.contenttypes" table="public.library_contenttype_mappings">
+	<columns names="contenttype_id,collection_id" ref-type="src-columns"/>
+	<columns names="id,collection_id" ref-type="dst-columns"/>
+</constraint>
+
 <relationship name="rel_user_collection_mappings_users" type="relfk"
 	 src-table="public.user_collection_mappings"
 	 dst-table="public.users"
@@ -283,15 +322,25 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	 dst-table="public.contenttypes"
 	 src-required="false" dst-required="false">
 	<line>
-		<position x="1087.42" y="990.4"/>
-	<position x="1087.42" y="889"/>
-	<position x="977.61" y="889"/>
+		<position x="947.416" y="1010.4"/>
+	<position x="947.416" y="909"/>
+	<position x="837.61" y="909"/>
 	</line>
 </relationship>
 
 <relationship name="rel_libraries_collections" type="relfk"
 	 src-table="public.libraries"
 	 dst-table="public.collections"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_library_contenttype_mappings_libraries" type="relfk"
+	 src-table="public.library_contenttype_mappings"
+	 dst-table="public.libraries"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_library_contenttype_mappings_contenttypes" type="relfk"
+	 src-table="public.library_contenttype_mappings"
+	 dst-table="public.contenttypes"
 	 src-required="false" dst-required="false"/>
 
 </dbmodel>

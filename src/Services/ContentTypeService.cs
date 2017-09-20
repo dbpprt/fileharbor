@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
@@ -96,6 +97,44 @@ namespace Fileharbor.Services
             }
         }
 
+        public async Task<IEnumerable<(Guid, string, string, Guid?)>> GetContentTypeInfoAsync(Guid collectionId,
+            Guid contentTypeId, Transaction transaction)
+        {
+            var database = await GetDatabaseConnectionAsync();
+            transaction = transaction.Spawn(database);
+
+            await _permissionService.EnsureCollectionPermission(collectionId, PermissionLevel.Member, transaction);
+
+            return await transaction.ExecuteAsync(async () =>
+            {
+                var entities = await database.QueryAsync<ContentTypeEntity>(
+                    "select id, name, parent_id from contenttypes where id = @id and collection_id = @collection_id",
+                    new {Id = contentTypeId, collection_id = collectionId},
+                    (DbTransaction) transaction);
+
+                return entities.Select(_ => (_.Id, _.Name, _.GroupName, _.ParentId));
+            });
+        }
+
+        public async Task<IEnumerable<(Guid, string, string, Guid?)>> GetContentTypeInfosAsync(Guid collectionId,
+            Transaction transaction)
+        {
+            var database = await GetDatabaseConnectionAsync();
+            transaction = transaction.Spawn(database);
+
+            await _permissionService.EnsureCollectionPermission(collectionId, PermissionLevel.Member, transaction);
+
+            return await transaction.ExecuteAsync(async () =>
+            {
+                var entities = await database.QueryAsync<ContentType>(
+                    "select id, name, parent_id from contenttypes where collection_id = @collection_id",
+                    new {collection_id = collectionId},
+                    (DbTransaction) transaction);
+
+                return entities.Select(_ => (_.Id, _.Name, _.GroupName, _.ParentId));
+            });
+        }
+
         public async Task<bool> HasContentTypeAsync(Guid collectionId, Guid contentTypeId, Transaction transaction)
         {
             var database = await GetDatabaseConnectionAsync();
@@ -105,7 +144,7 @@ namespace Fileharbor.Services
 
             return await transaction.ExecuteAsync(async () =>
             {
-                var entity = await database.QueryFirstOrDefaultAsync<Column>(
+                var entity = await database.QueryFirstOrDefaultAsync<ContentType>(
                     "select id from contenttypes where id = @id and collection_id = @collection_id",
                     new {Id = contentTypeId, collection_id = collectionId},
                     (DbTransaction) transaction);
