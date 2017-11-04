@@ -123,7 +123,7 @@ namespace Fileharbor
                     }
                 };
             });
-        }
+        }   
 
         [UsedImplicitly]
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -144,18 +144,18 @@ namespace Fileharbor
             app.UseMvc();
         }
 
-        public static void ConfigureStartupServices(WebHostBuilderContext context, IServiceCollection services)
-        {
-            var configuration = context.Configuration;
+            public static void ConfigureStartupServices(WebHostBuilderContext context, IServiceCollection services)
+            {
+                var configuration = context.Configuration;
 
-            // map all configuration sections
-            services.Configure<DatabaseConfiguration>(
-                configuration.GetSection(Constants.ConfigurationSections.Database));
-            services.Configure<SwaggerConfiguration>(configuration.GetSection(Constants.ConfigurationSections.Swagger));
-            services.Configure<AuthenticationConfiguration>(
-                configuration.GetSection(Constants.ConfigurationSections.Authentication));
-            services.Configure<LanguageConfiguration>(
-                configuration.GetSection(Constants.ConfigurationSections.Language));
-        }
+                // map all configuration sections
+                services.Configure<DatabaseConfiguration>(
+                    configuration.GetSection(Constants.ConfigurationSections.Database));
+                services.Configure<SwaggerConfiguration>(configuration.GetSection(Constants.ConfigurationSections.Swagger));
+                services.Configure<AuthenticationConfiguration>(
+                    configuration.GetSection(Constants.ConfigurationSections.Authentication));
+                services.Configure<LanguageConfiguration>(
+                    configuration.GetSection(Constants.ConfigurationSections.Language));
+            }
     }
 }
